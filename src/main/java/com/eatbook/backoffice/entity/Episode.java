@@ -67,6 +67,10 @@ public class Episode extends SoftDeletableEntity {
         this.novel = novel;
     }
 
+    public void setReleasedDate(LocalDateTime releasedDate) {
+        this.releasedDate = releasedDate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
