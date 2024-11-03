@@ -45,17 +45,30 @@ public class NovelService {
      */
     @Transactional
     public NovelResponse createNovel(NovelRequest novelRequest) {
-        if (novelAuthorRepository.findByNovelTitleAndAuthorName(novelRequest.title(), novelRequest.author()).isPresent()) {
-            throw new NovelAlreadyExistsException(NOVEL_ALREADY_EXISTS);
-        }
+        validateNovelUniqueness(novelRequest);
 
         Novel novel = createAndSaveNovel(novelRequest);
         Author author = findOrCreateAuthor(novelRequest.author());
         linkNovelAndAuthor(novel, author);
         linkNovelWithCategories(novel, novelRequest.category());
 
-        String presignedUrl = fileService.getPresignUrl(novel.getId(), COVER_IMAGE_CONTENT_TYPE, COVER_IMAGE_DIRECTORY);
-        return new NovelResponse(novel.getId(), presignedUrl);
+        novel.setCoverImageUrl(fileService.getPresignUrl(novel.getId(), COVER_IMAGE_CONTENT_TYPE, COVER_IMAGE_DIRECTORY));
+        novelRepository.save(novel);
+
+        return new NovelResponse(novel.getId(), novel.getCoverImageUrl());
+    }
+
+    /**
+     * 제목과 저자를 기준으로 소설의 유일성을 검증합니다.
+     * 만약 같은 제목과 저자를 가진 소설이 이미 존재할 경우, NovelAlreadyExistsException을 발생시킵니다.
+     *
+     * @param novelRequest 검증할 소설에 대한 정보
+     * @throws NovelAlreadyExistsException 동일한 제목과 저자를 가진 소설이 이미 존재할 경우
+     */
+    private void validateNovelUniqueness(NovelRequest novelRequest) {
+        if (novelAuthorRepository.findByNovelTitleAndAuthorName(novelRequest.title(), novelRequest.author()).isPresent()) {
+            throw new NovelAlreadyExistsException(NOVEL_ALREADY_EXISTS);
+        }
     }
 
     /**
