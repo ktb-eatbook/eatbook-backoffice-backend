@@ -60,6 +60,10 @@ public class Novel extends SoftDeletableEntity {
         this.publicationYear = publicationYear;
     }
 
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
