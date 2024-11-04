@@ -7,10 +7,10 @@ public record EpisodeResponse (
     String episodeId,
 
     @JsonProperty("presignedUrl")
-    String preSignedUrl
+    String presignedUrl
 ) {
-    public EpisodeResponse(String episodeId, String preSignedUrl) {
+    public EpisodeResponse(String episodeId, String presignedUrl) {
         this.episodeId = episodeId;
-        this.preSignedUrl = preSignedUrl;
+        this.presignedUrl = presignedUrl;
     }
 }

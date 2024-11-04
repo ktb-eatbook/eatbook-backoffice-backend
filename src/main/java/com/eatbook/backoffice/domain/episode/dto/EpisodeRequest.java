@@ -3,6 +3,7 @@ package com.eatbook.backoffice.domain.episode.dto;
 import com.eatbook.backoffice.entity.constant.ReleaseStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ public record EpisodeRequest (
     @NotNull(message = "공개 상태는 필수입니다.")
     ReleaseStatus releaseStatus
 ) {
+    @Builder
     public EpisodeRequest(
             String novelId,
             String title,
