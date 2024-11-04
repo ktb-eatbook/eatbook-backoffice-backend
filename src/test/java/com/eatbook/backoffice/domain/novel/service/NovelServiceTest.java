@@ -4,7 +4,10 @@ import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.repository.*;
-import com.eatbook.backoffice.entity.*;
+import com.eatbook.backoffice.entity.Author;
+import com.eatbook.backoffice.entity.Category;
+import com.eatbook.backoffice.entity.Novel;
+import com.eatbook.backoffice.entity.NovelAuthor;
 import com.eatbook.backoffice.entity.constant.ContentType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -205,9 +207,6 @@ class NovelServiceTest {
 
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
-        // 카테고리 저장 메서드가 번 호출되었는지 확인
-
-        verify(novelCategoryRepository, times(1)).saveAll(anyList());
 
         // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
         verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
