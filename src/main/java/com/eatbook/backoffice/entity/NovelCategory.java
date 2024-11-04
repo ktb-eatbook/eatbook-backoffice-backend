@@ -10,46 +10,39 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @IdClass(NovelCategoryId.class)
 @Entity
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "novel_category")
 public class NovelCategory {
 
     @Id
-    @Column(name = "novel_id", length = 36)
-    private String novelId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "novel_id", nullable = false)
+    @NotNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Novel novel;
 
     @Id
-    @Column(name = "category_id", length = 36)
-    private String categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    @NotNull
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Category category;
 
     @Column(nullable = false)
     @NotNull
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    @NotNull
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Novel novel;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    @NotNull
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Category category;
-
     @Builder
-    public NovelCategory(String novelId, String categoryId, LocalDateTime createdAt, Novel novel, Category category) {
-        this.novelId = novelId;
-        this.categoryId = categoryId;
-        this.createdAt = createdAt;
+    public NovelCategory(Novel novel, Category category) {
         this.novel = novel;
         this.category = category;
     }

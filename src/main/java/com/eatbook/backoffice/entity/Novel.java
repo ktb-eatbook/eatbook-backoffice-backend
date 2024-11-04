@@ -35,11 +35,11 @@ public class Novel extends SoftDeletableEntity {
 
     @Column(nullable = false)
     @NotNull
-    private int viewCount;
+    private int viewCount=0;
 
     @Column(nullable = false)
     @NotNull
-    private boolean isCompleted;
+    private boolean isCompleted=false;
 
     @Column
     private int publicationYear;
@@ -50,6 +50,9 @@ public class Novel extends SoftDeletableEntity {
     @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Episode> episodes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<NovelCategory> novelCategories = new ArrayList<>();
+
     @Builder
     public Novel(String title, String coverImageUrl, String summary, int viewCount, boolean isCompleted, int publicationYear) {
         this.title = title;
@@ -58,6 +61,22 @@ public class Novel extends SoftDeletableEntity {
         this.viewCount = viewCount;
         this.isCompleted = isCompleted;
         this.publicationYear = publicationYear;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
+
+    public void addAuthor(Author author) {
+        NovelAuthor novelAuthor = new NovelAuthor(this, author);
+        this.novelAuthors.add(novelAuthor);
+        author.getNovelAuthors().add(novelAuthor);
+    }
+
+    public void addCategory(Category category) {
+        NovelCategory novelCategory = new NovelCategory(this, category);
+        this.novelCategories.add(novelCategory);
+        category.getNovelCategories().add(novelCategory);
     }
 
     @Override

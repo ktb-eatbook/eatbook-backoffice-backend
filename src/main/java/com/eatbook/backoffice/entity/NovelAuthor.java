@@ -10,48 +10,38 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @IdClass(NovelAuthorId.class)
 @Entity
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "novel_author")
 public class NovelAuthor {
 
     @Id
-    @Column(name = "novel_id", length = 36)
-    @NotNull
-    private String novelId;
-
-    @Id
-    @Column(name = "author_id", length = 36)
-    @NotNull
-    private String authorId;
-
-    @Column(nullable = false)
-    @NotNull
-    @CreatedDate
-    private LocalDateTime createdAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @NotNull
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Novel novel;
 
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     @NotNull
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Author author;
+    @Column(nullable = false)
+    @NotNull
+    @CreatedDate
+    private LocalDateTime createdAt;
 
     @Builder
-    public NovelAuthor(String novelId, String authorId, LocalDateTime createdAt, Novel novel, Author author) {
-        this.novelId = novelId;
-        this.authorId = authorId;
-        this.createdAt = createdAt;
+    public NovelAuthor(Novel novel, Author author) {
         this.novel = novel;
         this.author = author;
     }
