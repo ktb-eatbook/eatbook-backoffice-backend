@@ -67,6 +67,18 @@ public class Novel extends SoftDeletableEntity {
         this.coverImageUrl = coverImageUrl;
     }
 
+    public void addAuthor(Author author) {
+        NovelAuthor novelAuthor = new NovelAuthor(this, author);
+        this.novelAuthors.add(novelAuthor);
+        author.getNovelAuthors().add(novelAuthor);
+    }
+
+    public void addCategory(Category category) {
+        NovelCategory novelCategory = new NovelCategory(this, category);
+        this.novelCategories.add(novelCategory);
+        category.getNovelCategories().add(novelCategory);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

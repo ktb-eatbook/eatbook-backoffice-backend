@@ -34,6 +34,12 @@ public class Category extends SoftDeletableEntity {
         this.name = name;
     }
 
+    public void addNovel(Novel novel) {
+        NovelCategory novelCategory = new NovelCategory(novel, this);
+        this.novelCategories.add(novelCategory);
+        novel.getNovelCategories().add(novelCategory);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

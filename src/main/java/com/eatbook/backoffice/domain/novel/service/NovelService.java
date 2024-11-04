@@ -133,11 +133,8 @@ public class NovelService {
      * @param author 저자
      */
     private void linkNovelAndAuthor(Novel novel, Author author) {
-        NovelAuthor novelAuthor = NovelAuthor.builder()
-                .novel(novel)
-                .author(author)
-                .build();
-        novelAuthorRepository.save(novelAuthor);
+        novel.addAuthor(author);
+        novelAuthorRepository.saveAll(novel.getNovelAuthors());
     }
 
     /**
@@ -152,13 +149,9 @@ public class NovelService {
             Category category = categoryRepository.findByName(categoryName)
                     .orElseGet(() -> categoryRepository.save(Category.builder().name(categoryName).build()));
 
-            NovelCategory novelCategory = NovelCategory.builder()
-                    .novel(novel)
-                    .category(category)
-                    .build();
-            novelCategoryRepository.save(novelCategory);
-
+            novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
+        novelCategoryRepository.saveAll(novel.getNovelCategories());
     }
 }
