@@ -97,14 +97,18 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
-                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
+        String coverImageUrl = getCoverImageUrl(newNovel);
         newNovel.setCoverImageUrl(coverImageUrl);
 
         newNovel = novelRepository.save(newNovel);
 
         log.info("새로운 소설이 생성됨: {} - 제목: {}", newNovel.getId(), newNovel.getTitle());
         return newNovel;
+    }
+
+    private String getCoverImageUrl(Novel newNovel) {
+        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
+                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
     }
 
     /**
