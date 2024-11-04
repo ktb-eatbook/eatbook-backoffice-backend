@@ -4,7 +4,10 @@ import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.repository.*;
-import com.eatbook.backoffice.entity.*;
+import com.eatbook.backoffice.entity.Author;
+import com.eatbook.backoffice.entity.Category;
+import com.eatbook.backoffice.entity.Novel;
+import com.eatbook.backoffice.entity.NovelAuthor;
 import com.eatbook.backoffice.entity.constant.ContentType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,10 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
+import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,25 +44,10 @@ class NovelServiceTest {
     @Mock
     private FileService fileService;
 
-    private final String title = "Valid Title";
-    private final String author = "Valid Author";
-    private final String summary = "Valid Summary";
-    private final List<String> category = List.of("Valid Category");
-    private final boolean isCompleted = true;
-    private final int publicationYear = 1800;
-    private final String testId = "2ed5d018-1499-407f-a73f-23ab142ba593";
-
     @Test
     void should_ThrowNovelAlreadyExistsException_When_TryingToCreateNovelWithSameTitleAndAuthor() {
         // given
-        NovelRequest novelRequest = NovelRequest.builder()
-                .title(title)
-                .author(author)
-                .summary(summary)
-                .category(category)
-                .isCompleted(isCompleted)
-                .publicationYear(publicationYear)
-                .build();
+        NovelRequest novelRequest = getNovelRequest();
 
         when(novelAuthorRepository.findByNovelTitleAndAuthorName(title, author))
                 .thenReturn(Optional.of(NovelAuthor.builder().build()));
@@ -83,14 +71,7 @@ class NovelServiceTest {
     @Test
     void should_CreateNovelSuccessfully_When_AllInputsAreValid() {
         // given
-        NovelRequest novelRequest = NovelRequest.builder()
-                .title(title)
-                .author(author)
-                .summary(summary)
-                .category(category)
-                .isCompleted(isCompleted)
-                .publicationYear(publicationYear)
-                .build();
+        NovelRequest novelRequest = getNovelRequest();
 
         when(authorRepository.findByName(anyString()))
                 .thenReturn(Optional.empty());
@@ -231,26 +212,5 @@ class NovelServiceTest {
 
         // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
         verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
-    }
-
-
-    // 헬퍼 메서드: 테스트용 Novel ID 설정
-    public static Novel createNovelWithId(String id, String title, String summary, int publicationYear) {
-        Novel novel = Novel.builder()
-                .title(title)
-                .summary(summary)
-                .publicationYear(publicationYear)
-                .build();
-
-        // 리플렉션을 사용하여 id 설정
-        try {
-            Field idField = Novel.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(novel, id);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        return novel;
     }
 }
