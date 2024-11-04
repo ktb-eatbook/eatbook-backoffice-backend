@@ -50,7 +50,7 @@ class NovelServiceTest {
     private final String testId = "2ed5d018-1499-407f-a73f-23ab142ba593";
 
     @Test
-    void shouldThrowNovelAlreadyExistsExceptionWhenTryingToCreateNovelWithSameTitleAndAuthor() {
+    void should_ThrowNovelAlreadyExistsException_When_TryingToCreateNovelWithSameTitleAndAuthor() {
         // given
         NovelRequest novelRequest = NovelRequest.builder()
                 .title(title)
@@ -81,7 +81,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenAllInputsAreValid() {
+    void should_CreateNovelSuccessfully_When_AllInputsAreValid() {
         // given
         NovelRequest novelRequest = NovelRequest.builder()
                 .title(title)
@@ -135,7 +135,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenTitleIsSameButAuthorIsDifferent() {
+    void should_CreateNovelSuccessfully_When_TitleIsSameButAuthorIsDifferent() {
         // given
 
         NovelRequest novelRequest = NovelRequest.builder()
@@ -192,7 +192,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenCategoryAlreadyExists() {
+    void should_CreateNovelSuccessfully_When_CategoryAlreadyExists() {
         // given
         List<String> newCategory = List.of("Category1", "Category4");
 
