@@ -9,6 +9,7 @@ import com.eatbook.backoffice.entity.constant.ContentType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,18 @@ public class NovelService {
     private static final String COVER_IMAGE_DIRECTORY = "cover";
 
     /**
+     * 파일이 업로드될 S3 버킷의 이름입니다.
+     */
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
+
+    /**
+     * AWS S3 버킷의 지역입니다.
+     */
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
+    /**
      * 새로운 소설을 생성하고, 저자, 카테고리를 연결합니다.
      *
      * @param novelRequest 새로운 소설에 대한 정보
@@ -52,10 +65,9 @@ public class NovelService {
         linkNovelAndAuthor(novel, author);
         linkNovelWithCategories(novel, novelRequest.category());
 
-        novel.setCoverImageUrl(fileService.getPresignUrl(novel.getId(), COVER_IMAGE_CONTENT_TYPE, COVER_IMAGE_DIRECTORY));
-        novelRepository.save(novel);
+        String presignedUrl = fileService.getPresignUrl(novel.getId(), COVER_IMAGE_CONTENT_TYPE, COVER_IMAGE_DIRECTORY);
 
-        return new NovelResponse(novel.getId(), novel.getCoverImageUrl());
+        return new NovelResponse(novel.getId(), presignedUrl);
     }
 
     /**
@@ -84,6 +96,12 @@ public class NovelService {
                 .isCompleted(novelRequest.isCompleted())
                 .publicationYear(novelRequest.publicationYear())
                 .build());
+
+        String coverImageUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
+                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
+        newNovel.setCoverImageUrl(coverImageUrl);
+
+        newNovel = novelRepository.save(newNovel);
 
         log.info("새로운 소설이 생성됨: {} - 제목: {}", newNovel.getId(), newNovel.getTitle());
         return newNovel;
