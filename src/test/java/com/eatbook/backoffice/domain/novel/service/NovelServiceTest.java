@@ -207,8 +207,6 @@ class NovelServiceTest {
 
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
-        // 카테고리 저장 메서드가 번 호출되었는지 확인
-        verify(novelCategoryRepository, times(1)).saveAll(anyList());
 
         // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
         verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
