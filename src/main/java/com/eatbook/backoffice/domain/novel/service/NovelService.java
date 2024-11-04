@@ -44,7 +44,7 @@ public class NovelService {
     private String bucketName;
 
     /**
-     * AWS S3 버킷의 지역입니다.
+     * AWS S3 버킷의 지역입니다.a
      */
     @Value("${cloud.aws.region.static}")
     private String region;
