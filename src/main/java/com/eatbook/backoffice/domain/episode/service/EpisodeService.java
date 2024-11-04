@@ -15,6 +15,7 @@ import com.eatbook.backoffice.entity.constant.ContentType;
 import com.eatbook.backoffice.entity.constant.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,18 @@ public class EpisodeService {
     private static final String EPISODE_DIRECTORY = "episode";
 
     /**
+     * 파일이 업로드될 S3 버킷의 이름입니다.
+     */
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
+
+    /**
+     * AWS S3 버킷의 지역입니다.
+     */
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
+    /**
      * 에피소드를 생성하고, FileMetadata를 업데이트합니다.
      *
      * @param episodeRequest 에피소드 생성 요청
@@ -55,12 +68,11 @@ public class EpisodeService {
 
         Novel novel = findNovelById(episodeRequest.novelId());
         Episode episode = createAndSaveEpisode(episodeRequest, novel);
+        createFileMetadata(episode, novel.getId());
 
-        FileMetadata fileMetadata = createFileMetadata(episode);
-        fileMetadata.setPath(generatePresignedUrl(novel.getId(), episode.getId()));
-        fileMetadataRepository.save(fileMetadata);
+        String presignedUrl = generatePresignedUrl(novel.getId(), episode.getId());
 
-        return new EpisodeResponse(episode.getId(), fileMetadata.getPath());
+        return new EpisodeResponse(episode.getId(), presignedUrl);
     }
 
     /**
@@ -118,12 +130,20 @@ public class EpisodeService {
      * @param episode 에피소드
      * @return 생성된 FileMetadata
      */
-    private FileMetadata createFileMetadata(Episode episode) {
-        return fileMetadataRepository.save(FileMetadata.builder()
+    private FileMetadata createFileMetadata(Episode episode, String novelId) {
+        FileMetadata fileMetadata = fileMetadataRepository.save(FileMetadata.builder()
                 .type(SCRIPT)
                 .episode(episode)
                 .path("")
                 .build());
+
+        String filePath = "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
+                + novelId + "/" + EPISODE_DIRECTORY + "/" + episode.getId();
+        fileMetadata.setPath(filePath);
+
+        fileMetadata = fileMetadataRepository.save(fileMetadata);
+
+        return fileMetadata;
     }
 
     /**
