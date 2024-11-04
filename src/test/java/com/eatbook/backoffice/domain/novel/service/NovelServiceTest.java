@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
+import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,25 +42,10 @@ class NovelServiceTest {
     @Mock
     private FileService fileService;
 
-    private final String title = "Valid Title";
-    private final String author = "Valid Author";
-    private final String summary = "Valid Summary";
-    private final List<String> category = List.of("Valid Category");
-    private final boolean isCompleted = true;
-    private final int publicationYear = 1800;
-    private final String testId = "2ed5d018-1499-407f-a73f-23ab142ba593";
-
     @Test
-    void shouldThrowNovelAlreadyExistsExceptionWhenTryingToCreateNovelWithSameTitleAndAuthor() {
+    void should_ThrowNovelAlreadyExistsException_When_TryingToCreateNovelWithSameTitleAndAuthor() {
         // given
-        NovelRequest novelRequest = NovelRequest.builder()
-                .title(title)
-                .author(author)
-                .summary(summary)
-                .category(category)
-                .isCompleted(isCompleted)
-                .publicationYear(publicationYear)
-                .build();
+        NovelRequest novelRequest = getNovelRequest();
 
         when(novelAuthorRepository.findByNovelTitleAndAuthorName(title, author))
                 .thenReturn(Optional.of(NovelAuthor.builder().build()));
@@ -81,16 +67,9 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenAllInputsAreValid() {
+    void should_CreateNovelSuccessfully_When_AllInputsAreValid() {
         // given
-        NovelRequest novelRequest = NovelRequest.builder()
-                .title(title)
-                .author(author)
-                .summary(summary)
-                .category(category)
-                .isCompleted(isCompleted)
-                .publicationYear(publicationYear)
-                .build();
+        NovelRequest novelRequest = getNovelRequest();
 
         when(authorRepository.findByName(anyString()))
                 .thenReturn(Optional.empty());
@@ -111,12 +90,6 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(novelCategoryRepository.save(any(NovelCategory.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(novelAuthorRepository.save(any(NovelAuthor.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
         when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
                 .thenReturn("presignedUrl");
 
@@ -135,7 +108,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenTitleIsSameButAuthorIsDifferent() {
+    void should_CreateNovelSuccessfully_When_TitleIsSameButAuthorIsDifferent() {
         // given
 
         NovelRequest novelRequest = NovelRequest.builder()
@@ -168,12 +141,6 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(novelCategoryRepository.save(any(NovelCategory.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(novelAuthorRepository.save(any(NovelAuthor.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
         when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
                 .thenReturn("presignedUrl");
 
@@ -192,7 +159,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void shouldCreateNovelSuccessfullyWhenCategoryAlreadyExists() {
+    void should_CreateNovelSuccessfully_When_CategoryAlreadyExists() {
         // given
         List<String> newCategory = List.of("Category1", "Category4");
 
@@ -226,12 +193,6 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(novelCategoryRepository.save(any(NovelCategory.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(novelAuthorRepository.save(any(NovelAuthor.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
         when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
                 .thenReturn("presignedUrl");
 
@@ -245,30 +206,10 @@ class NovelServiceTest {
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
         // 카테고리 저장 메서드가 번 호출되었는지 확인
-        verify(novelCategoryRepository, times(newCategory.size())).save(any(NovelCategory.class));
+
+        verify(novelCategoryRepository, times(1)).saveAll(anyList());
 
         // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
         verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
-    }
-
-
-    // 헬퍼 메서드: 테스트용 Novel ID 설정
-    public static Novel createNovelWithId(String id, String title, String summary, int publicationYear) {
-        Novel novel = Novel.builder()
-                .title(title)
-                .summary(summary)
-                .publicationYear(publicationYear)
-                .build();
-
-        // 리플렉션을 사용하여 id 설정
-        try {
-            Field idField = Novel.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(novel, id);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        return novel;
     }
 }

@@ -36,7 +36,7 @@ public class FileService {
      * 생성된 presigned URL의 유효 기간(분)입니다.
      */
     @Value("${presigned.url.expiration}")
-    private long presignedUrlExpiration;
+    private int presignedUrlExpiration;
 
     /**
      * S3 버킷에 파일을 업로드할 수 있는 presigned URL을 생성합니다.

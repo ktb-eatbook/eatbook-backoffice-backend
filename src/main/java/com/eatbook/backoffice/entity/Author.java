@@ -34,6 +34,12 @@ public class Author extends SoftDeletableEntity {
         this.name = name;
     }
 
+    public void addNovel(Novel novel) {
+        NovelAuthor novelAuthor = new NovelAuthor(novel, this);
+        this.novelAuthors.add(novelAuthor);
+        novel.getNovelAuthors().add(novelAuthor);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

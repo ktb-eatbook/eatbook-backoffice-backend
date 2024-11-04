@@ -58,7 +58,7 @@ public class NovelService {
      */
     @Transactional
     public NovelResponse createNovel(NovelRequest novelRequest) {
-        validateNovelUniqueness(novelRequest);
+        validateNovelUniqueness(novelRequest.title(), novelRequest.author());
 
         Novel novel = createAndSaveNovel(novelRequest);
         Author author = findOrCreateAuthor(novelRequest.author());
@@ -74,11 +74,11 @@ public class NovelService {
      * 제목과 저자를 기준으로 소설의 유일성을 검증합니다.
      * 만약 같은 제목과 저자를 가진 소설이 이미 존재할 경우, NovelAlreadyExistsException을 발생시킵니다.
      *
-     * @param novelRequest 검증할 소설에 대한 정보
+     * @param title, author 소설의 제목과 저자
      * @throws NovelAlreadyExistsException 동일한 제목과 저자를 가진 소설이 이미 존재할 경우
      */
-    private void validateNovelUniqueness(NovelRequest novelRequest) {
-        if (novelAuthorRepository.findByNovelTitleAndAuthorName(novelRequest.title(), novelRequest.author()).isPresent()) {
+    private void validateNovelUniqueness(String title, String author) {
+        if (novelAuthorRepository.findByNovelTitleAndAuthorName(title, author).isPresent()) {
             throw new NovelAlreadyExistsException(NOVEL_ALREADY_EXISTS);
         }
     }
@@ -97,14 +97,18 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
-                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
+        String coverImageUrl = getCoverImageUrl(newNovel);
         newNovel.setCoverImageUrl(coverImageUrl);
 
         newNovel = novelRepository.save(newNovel);
 
         log.info("새로운 소설이 생성됨: {} - 제목: {}", newNovel.getId(), newNovel.getTitle());
         return newNovel;
+    }
+
+    private String getCoverImageUrl(Novel newNovel) {
+        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
+                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
     }
 
     /**
@@ -129,11 +133,8 @@ public class NovelService {
      * @param author 저자
      */
     private void linkNovelAndAuthor(Novel novel, Author author) {
-        NovelAuthor novelAuthor = NovelAuthor.builder()
-                .novel(novel)
-                .author(author)
-                .build();
-        novelAuthorRepository.save(novelAuthor);
+        novel.addAuthor(author);
+        novelAuthorRepository.saveAll(novel.getNovelAuthors());
     }
 
     /**
@@ -147,13 +148,7 @@ public class NovelService {
         for (String categoryName : categoryNames) {
             Category category = categoryRepository.findByName(categoryName)
                     .orElseGet(() -> categoryRepository.save(Category.builder().name(categoryName).build()));
-
-            NovelCategory novelCategory = NovelCategory.builder()
-                    .novel(novel)
-                    .category(category)
-                    .build();
-            novelCategoryRepository.save(novelCategory);
-
+            novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
     }
