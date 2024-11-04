@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,6 +25,9 @@ public class Category extends SoftDeletableEntity {
     @Column(nullable = false, length = 50)
     @NotNull
     private String name;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<NovelCategory> novelCategories = new ArrayList<>();
 
     @Builder
     public Category(String name) {
