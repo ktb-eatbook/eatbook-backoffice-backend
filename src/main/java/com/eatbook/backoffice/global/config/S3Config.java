@@ -23,7 +23,7 @@ public class S3Config {
     public S3Client s3Client() {
         return S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.of(region))  // 지역 설정
+                .region(Region.of(region))
                 .build();
     }
 
@@ -31,7 +31,7 @@ public class S3Config {
     public S3Presigner presigner() {
         return S3Presigner.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .region(Region.of(region))  // 지역 설정
+                .region(Region.of(region))
                 .build();
     }
 }
