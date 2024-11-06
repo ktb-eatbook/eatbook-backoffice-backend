@@ -10,9 +10,9 @@ services:
       - "8090:8090"
     environment:
       PROFILE: "${PROFILE}"
-      SERVER_PORT: "${SERVER_PORT:8090}"
+      SERVER_PORT: "${SERVER_PORT}"
       DB_DOMAIN: "${DB_DOMAIN}"
-      DB_PORT: "${DB_PORT:3306}"
+      DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
       DB_USERNAME: "${DB_USERNAME}"
       DB_PASSWORD: "${DB_PASSWORD}"
