@@ -8,6 +8,17 @@ import com.eatbook.backoffice.entity.constant.ReleaseStatus;
 import java.lang.reflect.Field;
 
 public class EpisodeFixture {
+
+    public static final String episodeId = "3ed5d018-1499-407f-a73f-23ab142ba593";
+    public static final String novelId = "2ed5d018-1499-407f-a73f-23ab142ba593";
+    public static final String fileMetadataId = "4ed5d018-1499-407f-a73f-23ab142ba593";
+    public static final String episodeTitle = "Unique Episode Title";
+    public static final String episodeTitleDuplicated = "Duplicated Episode Title";
+    public static final String novelTitle = "Title";
+    public static final String summary = "Valid Episode Summary";
+    public static final int publicationYear = 1800;
+    public static final ReleaseStatus releaseStatus = ReleaseStatus.PUBLIC;
+
     // 헬퍼 메서드: FileMetadata ID 설정
     public static FileMetadata createFileMetadataWithId(String id) {
         FileMetadata fileMetadata = FileMetadata.builder().build();

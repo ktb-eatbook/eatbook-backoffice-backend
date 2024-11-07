@@ -49,18 +49,18 @@ class EpisodeServiceTest {
     void should_CreateEpisodeAndFileMetadata_When_TitleIsUniqueAndNovelExists() {
         // Given
         EpisodeRequest episodeRequest = EpisodeRequest.builder()
-                .title("Unique Episode Title")
-                .novelId("novelId")
+                .title(episodeTitle)
+                .novelId(novelId)
                 .releaseStatus(ReleaseStatus.PUBLIC)
                 .build();
 
-        Novel novel = createNovelWithId("novelId", "Title", "Summary", 2021);
-        Episode episode = createEpisodeWithId("episodeId", episodeRequest.title(), ReleaseStatus.PUBLIC);
-        FileMetadata fileMetadata = createFileMetadataWithId("fileMetadataId");
+        Novel novel = createNovelWithId(novelId, novelTitle, summary, publicationYear);
+        Episode episode = createEpisodeWithId(episodeId, episodeRequest.title(), ReleaseStatus.PUBLIC);
+        FileMetadata fileMetadata = createFileMetadataWithId(fileMetadataId);
 
-        when(novelRepository.findById("novelId")).thenReturn(Optional.of(novel));
+        when(novelRepository.findById(novelId)).thenReturn(Optional.of(novel));
         when(episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episodeRequest.novelId())).thenReturn(Optional.empty());
-        when(episodeRepository.findMaxChapterNumberByNovelId("novelId")).thenReturn(1);
+        when(episodeRepository.findMaxChapterNumberByNovelId(novelId)).thenReturn(1);
         when(episodeRepository.save(any(Episode.class))).thenReturn(episode);
         when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(fileMetadata);
 
@@ -68,7 +68,7 @@ class EpisodeServiceTest {
         EpisodeResponse episodeResponse = episodeService.createEpisode(episodeRequest);
 
         // Then
-        assertThat(episodeResponse.episodeId()).isEqualTo("episodeId");
+        assertThat(episodeResponse.episodeId()).isEqualTo(episodeId);
         verify(episodeRepository, times(1)).save(any(Episode.class));
         verify(fileMetadataRepository, times(2)).save(any(FileMetadata.class));
     }
@@ -77,12 +77,12 @@ class EpisodeServiceTest {
     void should_ThrowEpisodeAlreadyExistsException_When_CreatingEpisodeWithDuplicateTitle() {
         // Given
         EpisodeRequest episodeRequest = EpisodeRequest.builder()
-                .title("Duplicate Episode Title")
-                .novelId("novelId")
+                .title(episodeTitleDuplicated)
+                .novelId(novelId)
                 .releaseStatus(ReleaseStatus.PUBLIC)
                 .build();
 
-        Episode episode = createEpisodeWithId("episodeId", episodeRequest.title(), ReleaseStatus.PUBLIC);
+        Episode episode = createEpisodeWithId(episodeId, episodeRequest.title(), ReleaseStatus.PUBLIC);
 
         when(episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episodeRequest.novelId())).thenReturn(Optional.of(episode));
 
