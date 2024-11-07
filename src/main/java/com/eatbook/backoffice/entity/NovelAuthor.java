@@ -35,6 +35,7 @@ public class NovelAuthor {
     @NotNull
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Author author;
+
     @Column(nullable = false)
     @NotNull
     @CreatedDate
