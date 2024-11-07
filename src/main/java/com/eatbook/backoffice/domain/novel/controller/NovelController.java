@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.NOVEL_CREATED;
 
@@ -38,7 +35,7 @@ public class NovelController {
      *         이 ApiResponse에는 생성된 소설Id와 커버 이미지용 presigned URL 정보가 포함됩니다.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createNovel(@ModelAttribute @Validated NovelRequest novelRequest) {
+    public ResponseEntity<ApiResponse> createNovel(@Validated NovelRequest novelRequest) {
 
         log.info("Create Novel Request: {}", novelRequest);
 
