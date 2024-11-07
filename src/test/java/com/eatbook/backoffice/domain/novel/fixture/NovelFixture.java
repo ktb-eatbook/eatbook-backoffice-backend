@@ -2,6 +2,7 @@ package com.eatbook.backoffice.domain.novel.fixture;
 
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.entity.Novel;
+import org.springframework.data.domain.*;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -15,6 +16,11 @@ public class NovelFixture {
     public static final boolean isCompleted = true;
     public static final int publicationYear = 1800;
     public static final String testId = "2ed5d018-1499-407f-a73f-23ab142ba593";
+    public static final int page = 1;
+    public static final int overPage = 100;
+    public static final int size = 2;
+    public static List<Novel> novels;
+
 
     // 헬퍼 메서드: 테스트용 Novel ID 설정
     public static Novel createNovelWithId(String id, String title, String summary, int publicationYear) {
@@ -47,5 +53,23 @@ public class NovelFixture {
                 .publicationYear(publicationYear)
                 .build();
         return novelRequest;
+    }
+
+    // 헬퍼 메서드: 테스트용 Novel 생성
+    public static void setUpNovelList() {
+        // Mock novel list setup
+        novels = List.of(
+                NovelFixture.createNovelWithId("test-id-1", "title-1", summary, publicationYear),
+                NovelFixture.createNovelWithId("test-id-2", "title-2", summary, publicationYear),
+                NovelFixture.createNovelWithId("test-id-3", "title-3", summary, publicationYear),
+                NovelFixture.createNovelWithId("test-id-4", "title-4", summary, publicationYear),
+                NovelFixture.createNovelWithId("test-id-5", "title-5", summary, publicationYear)
+        );
+    }
+
+    // 헬퍼 메서드: 테스트용 Page<Novel> 생성
+    public static Page<Novel> createPaginatedNovels(int page, int size, List<Novel> novels) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return new PageImpl<>(novels.subList(0, Math.min(size, novels.size())), pageable, novels.size());
     }
 }
