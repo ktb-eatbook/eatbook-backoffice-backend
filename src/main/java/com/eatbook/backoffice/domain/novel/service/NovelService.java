@@ -7,7 +7,9 @@ import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
-import com.eatbook.backoffice.entity.*;
+import com.eatbook.backoffice.entity.Author;
+import com.eatbook.backoffice.entity.Category;
+import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.constant.ContentType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -192,7 +194,6 @@ public class NovelService {
             novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
-        novelCategoryRepository.saveAll(novel.getNovelCategories());
     }
 
     /**
