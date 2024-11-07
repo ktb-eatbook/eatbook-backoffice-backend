@@ -79,6 +79,10 @@ public class Novel extends SoftDeletableEntity {
         category.getNovelCategories().add(novelCategory);
     }
 
+    public void addEpisode(Episode episode) {
+        this.episodes.add(episode);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -126,6 +126,8 @@ public class EpisodeService {
                 .novel(novel)
                 .build();
 
+        novel.addEpisode(episode);
+
         log.info("새로운 에피소드가 생성됨: {} - 제목: {}", episode.getId(), episode.getTitle());
 
         return episodeRepository.save(episode);
