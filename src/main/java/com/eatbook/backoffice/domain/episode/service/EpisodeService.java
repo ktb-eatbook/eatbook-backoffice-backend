@@ -146,9 +146,17 @@ public class EpisodeService {
                 .path("")
                 .build());
 
-        String filePath = getFilePath(bucketName, region, novelId, episodeDirectory, episode.getId(), scriptDirectory, fileMetadata.getId());
-        fileMetadata.setPath(filePath);
+        String filePath = getFilePath(
+                bucketName,
+                region,
+                novelId,
+                episodeDirectory,
+                episode.getId(),
+                scriptDirectory,
+                fileMetadata.getId()
+        );
 
+        fileMetadata.setPath(filePath);
         return fileMetadataRepository.save(fileMetadata);
     }
 }

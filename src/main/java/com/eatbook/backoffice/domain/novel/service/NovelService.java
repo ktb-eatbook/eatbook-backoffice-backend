@@ -95,9 +95,14 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = getFilePath(bucketName, region, COVER_IMAGE_DIRECTORY, newNovel.getId());
-        newNovel.setCoverImageUrl(coverImageUrl);
+        String coverImageUrl = getFilePath(
+                bucketName,
+                region,
+                COVER_IMAGE_DIRECTORY,
+                newNovel.getId()
+        );
 
+        newNovel.setCoverImageUrl(coverImageUrl);
         newNovel = novelRepository.save(newNovel);
 
         log.info("새로운 소설이 생성됨: {} - 제목: {}", newNovel.getId(), newNovel.getTitle());
