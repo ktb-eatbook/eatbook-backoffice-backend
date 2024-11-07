@@ -2,6 +2,7 @@ package com.eatbook.backoffice.domain.episode.service;
 
 import com.eatbook.backoffice.domain.episode.dto.EpisodeRequest;
 import com.eatbook.backoffice.domain.episode.dto.EpisodeResponse;
+import com.eatbook.backoffice.domain.episode.exception.EpisodeAlreadyExistsException;
 import com.eatbook.backoffice.domain.episode.repository.EpisodeRepository;
 import com.eatbook.backoffice.domain.episode.repository.FileMetadataRepository;
 import com.eatbook.backoffice.domain.novel.repository.NovelRepository;
@@ -17,9 +18,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
+
+import static com.eatbook.backoffice.domain.episode.fixture.EpisodeFixture.*;
+import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_TITLE_DUPLICATED;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +46,7 @@ class EpisodeServiceTest {
     private EpisodeService episodeService;
 
     @Test
-    void createEpisodeWithUniqueTitleAndNovelThatExistsShouldCreateEpisodeAndFileMetadata() {
+    void should_CreateEpisodeAndFileMetadata_When_TitleIsUniqueAndNovelExists() {
         // Given
         EpisodeRequest episodeRequest = EpisodeRequest.builder()
                 .title("Unique Episode Title")
@@ -59,70 +63,34 @@ class EpisodeServiceTest {
         when(episodeRepository.findMaxChapterNumberByNovelId("novelId")).thenReturn(1);
         when(episodeRepository.save(any(Episode.class))).thenReturn(episode);
         when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(fileMetadata);
-        when(fileService.getPresignUrl("novelId", EPISODE_CONTENT_TYPE, "episodeId/episode")).thenReturn("presignedUrl");
 
         // When
         EpisodeResponse episodeResponse = episodeService.createEpisode(episodeRequest);
 
         // Then
         assertThat(episodeResponse.episodeId()).isEqualTo("episodeId");
-        assertThat(episodeResponse.presignedUrl()).isEqualTo("presignedUrl");
         verify(episodeRepository, times(1)).save(any(Episode.class));
-        verify(fileMetadataRepository, times(1)).save(any(FileMetadata.class));
+        verify(fileMetadataRepository, times(2)).save(any(FileMetadata.class));
     }
 
-    // 헬퍼 메서드: 테스트용 Novel ID 설정
-    public static Novel createNovelWithId(String id, String title, String summary, int publicationYear) {
-        Novel novel = Novel.builder()
-                .title(title)
-                .summary(summary)
-                .publicationYear(publicationYear)
+    @Test
+    void should_ThrowEpisodeAlreadyExistsException_When_CreatingEpisodeWithDuplicateTitle() {
+        // Given
+        EpisodeRequest episodeRequest = EpisodeRequest.builder()
+                .title("Duplicate Episode Title")
+                .novelId("novelId")
+                .releaseStatus(ReleaseStatus.PUBLIC)
                 .build();
 
-        // 리플렉션을 사용하여 id 설정
-        try {
-            Field idField = Novel.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(novel, id);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        Episode episode = createEpisodeWithId("episodeId", episodeRequest.title(), ReleaseStatus.PUBLIC);
 
-        return novel;
-    }
+        when(episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episodeRequest.novelId())).thenReturn(Optional.of(episode));
 
-    // 헬퍼 메서드: 테스트용 Episode ID 설정
-    public static Episode createEpisodeWithId(String id, String title, ReleaseStatus releaseStatus) {
-        Episode episode = Episode.builder()
-                .title(title)
-                .releaseStatus(releaseStatus)
-                .build();
+        // When
+        EpisodeAlreadyExistsException exception = assertThrows(EpisodeAlreadyExistsException.class,
+                () -> episodeService.createEpisode(episodeRequest));
 
-        // 리플렉션을 사용하여 id 설정
-        try {
-            Field idField = Episode.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(episode, id);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        return episode;
-    }
-
-    // 헬퍼 메서드: FileMetadata ID 설정
-    public static FileMetadata createFileMetadataWithId(String id) {
-        FileMetadata fileMetadata = FileMetadata.builder().build();
-
-        // 리플렉션을 사용하여 id 설정
-        try {
-            Field idField = FileMetadata.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(fileMetadata, id);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-        return fileMetadata;
+        // Then
+        assertThat(exception.getMessage()).contains(EPISODE_TITLE_DUPLICATED.getMessage());
     }
 }
