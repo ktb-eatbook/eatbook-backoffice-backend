@@ -10,7 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.NOVEL_CREATED;
 
@@ -31,11 +34,11 @@ public class NovelController {
      *
      * @param novelRequest 소설 세부 정보가 포함된 요청 객체. 이 객체는 Spring의 {@link Validated} 어노테이션을 사용하여 유효성을 검사해야 합니다.
      * @return {@link HttpStatus#CREATED} 상태 코드를 갖는 ResponseEntity와
-     *         성공 코드 {@link NovelSuccessCode#NOVEL_CREATED}를 포함하는 ApiResponse입니다.
-     *         이 ApiResponse에는 생성된 소설Id와 커버 이미지용 presigned URL 정보가 포함됩니다.
+     * 성공 코드 {@link NovelSuccessCode#NOVEL_CREATED}를 포함하는 ApiResponse입니다.
+     * 이 ApiResponse에는 생성된 소설Id와 커버 이미지용 presigned URL 정보가 포함됩니다.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createNovel(@Validated NovelRequest novelRequest) {
+    public ResponseEntity<ApiResponse> createNovel(@Validated @RequestBody NovelRequest novelRequest) {
 
         log.info("Create Novel Request: {}", novelRequest);
 

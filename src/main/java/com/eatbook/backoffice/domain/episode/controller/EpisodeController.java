@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,7 +38,7 @@ public class EpisodeController {
      *         이 ApiResponse에는 생성된 에피소드Id와 텍스트파일이 업로드될 presigned URL 정보가 포함됩니다.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createEpisode(@Validated EpisodeRequest episodeRequest) {
+    public ResponseEntity<ApiResponse> createEpisode(@Validated @RequestBody EpisodeRequest episodeRequest) {
 
         log.info("Create Episode Request: {}", episodeRequest);
 
