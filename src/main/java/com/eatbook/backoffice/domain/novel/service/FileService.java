@@ -55,18 +55,6 @@ public class FileService {
     }
 
     /**
-     * S3 버킷에 저장할 객체(파일)의 키(key)를 생성합니다.
-     *
-     * @param objectId       객체(파일)의 ID
-     * @param directoryPath  객체(파일)가 저장될 디렉토리 경로
-     * @return 생성된 객체(파일) 키
-     */
-    private String createObjectKey(String objectId, String directoryPath) {
-        log.info(directoryPath + "/" + objectId);
-        return directoryPath + "/" + objectId;
-    }
-
-    /**
      * S3 PutObject 요청 객체를 생성합니다.
      *
      * @param objectKey     객체(파일) 키
