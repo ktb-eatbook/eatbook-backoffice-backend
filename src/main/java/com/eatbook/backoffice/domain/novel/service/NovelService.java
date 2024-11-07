@@ -8,11 +8,11 @@ import com.eatbook.backoffice.entity.Author;
 import com.eatbook.backoffice.entity.Category;
 import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.constant.ContentType;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -149,5 +149,6 @@ public class NovelService {
             novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
+        novelCategoryRepository.saveAll(novel.getNovelCategories());
     }
 }
