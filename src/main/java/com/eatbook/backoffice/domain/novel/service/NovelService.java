@@ -111,31 +111,6 @@ public class NovelService {
         );
     }
 
-        /**
-     * 주어진 소설과 연관된 저자 이름 목록을 반환합니다.
-     *
-     * @param novel 저자 이름을 추출할 소설 엔티티
-     * @return 소설과 연관된 저자 이름 목록
-     */
-    private List<String> getAuthorNames(Novel novel) {
-        return novel.getNovelAuthors().stream()
-                .map(NovelAuthor::getAuthor)
-                .map(Author::getName)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     주어진 소설과 관련된 카테고리 이름 목록을 반환합니다.
-     @param novel 카테고리 이름을 추출할 소설 엔티티
-     @return 소설과 관련된 카테고리 이름 목록
-     */
-    private List<String> getCategoryNames(Novel novel) {
-        return novel.getNovelCategories().stream()
-                .map(NovelCategory::getCategory)
-                .map(Category::getName)
-                .collect(Collectors.toList());
-    }
-
     /**
      * 제목과 저자를 기준으로 소설의 유일성을 검증합니다.
      * 만약 같은 제목과 저자를 가진 소설이 이미 존재할 경우, NovelAlreadyExistsException을 발생시킵니다.
@@ -218,5 +193,30 @@ public class NovelService {
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
         novelCategoryRepository.saveAll(novel.getNovelCategories());
+    }
+
+    /**
+     * 주어진 소설과 연관된 저자 이름 목록을 반환합니다.
+     *
+     * @param novel 저자 이름을 추출할 소설 엔티티
+     * @return 소설과 연관된 저자 이름 목록
+     */
+    private List<String> getAuthorNames(Novel novel) {
+        return novel.getNovelAuthors().stream()
+                .map(NovelAuthor::getAuthor)
+                .map(Author::getName)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     주어진 소설과 관련된 카테고리 이름 목록을 반환합니다.
+     @param novel 카테고리 이름을 추출할 소설 엔티티
+     @return 소설과 관련된 카테고리 이름 목록
+     */
+    private List<String> getCategoryNames(Novel novel) {
+        return novel.getNovelCategories().stream()
+                .map(NovelCategory::getCategory)
+                .map(Category::getName)
+                .collect(Collectors.toList());
     }
 }
