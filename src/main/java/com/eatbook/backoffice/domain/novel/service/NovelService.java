@@ -86,7 +86,7 @@ public class NovelService {
     @Transactional(readOnly = true)
     public NovelListResponse getNovelList(int page, int size) {
         Pageable pageable = PageRequest.of(page -1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Novel> novelPage = novelRepository.findAll(pageable);
+        Page<Novel> novelPage = novelRepository.findAllWithAuthorsAndCategories(pageable);
 
         if (page > novelPage.getTotalPages() + 1) {
             throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
