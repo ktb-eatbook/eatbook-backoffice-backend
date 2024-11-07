@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum NovelSuccessCode implements StatusCode {
     NOVEL_CREATED("NOVEL_CREATED", "소설이 성공적으로 생성되었습니다."),
+    GET_NOVEL_LIST("GET_NOVEL_LIST", "소설 목록을 성공적으로 조회했습니다."),
     ;
 
     private final String code;
