@@ -24,9 +24,11 @@ import java.time.LocalDateTime;
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_TITLE_DUPLICATED;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_NOT_FOUND;
 import static com.eatbook.backoffice.entity.constant.FileType.SCRIPT;
+import static com.eatbook.backoffice.global.utils.PathGenerator.generateRelativePath;
+import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
 
 /**
- * 에피소드를 관리하는 서비스 클래스입니다.
+ * 에피소드를 관리하는 서비스 클래스.
  *
  * @author lavin
  */
@@ -40,55 +42,60 @@ public class EpisodeService {
     private final FileService fileService;
 
     private static final ContentType EPISODE_CONTENT_TYPE = ContentType.TXT;
-    private static final String EPISODE_DIRECTORY = "episode";
 
     /**
-     * 파일이 업로드될 S3 버킷의 이름입니다.
+     * AWS S3 에피소드 디렉토리.
      */
+    @Value("${cloud.aws.s3.directory.episode}")
+    private String episodeDirectory;
+
+    /**
+     * AWS S3 스크립트 디렉토리.
+     */
+    @Value("${cloud.aws.s3.directory.script}")
+    private String scriptDirectory;
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    /**
-     * AWS S3 버킷의 지역입니다.
-     */
     @Value("${cloud.aws.region.static}")
     private String region;
 
     /**
-     * 에피소드를 생성하고, FileMetadata를 업데이트합니다.
+     * 에피소드를 생성하고, 에피소드 URL을 반환합니다.
      *
      * @param episodeRequest 에피소드 생성 요청
-     * @return 에피소드 ID와 파일 경로
-     * @throws EpisodeAlreadyExistsException 에피소드 제목이 중복될 경우
-     * @throws NovelNotFoundException 소설이 존재하지 않을 경우
+     * @return 에피소드 ID와 에피소드 URL
      */
     @Transactional
     public EpisodeResponse createEpisode(EpisodeRequest episodeRequest) {
-        validateEpisodeUniqueness(episodeRequest);
+        checkForDuplicateEpisodeTitle(episodeRequest);
 
         Novel novel = findNovelById(episodeRequest.novelId());
         Episode episode = createAndSaveEpisode(episodeRequest, novel);
-        createFileMetadata(episode, novel.getId());
+        FileMetadata fileMetadata = createAndSaveFileMetadata(episode, novel.getId());
 
-        String presignedUrl = generatePresignedUrl(novel.getId(), episode.getId());
+        String presignedUrl = fileService.getPresignUrl(
+                generateRelativePath(novel.getId(), episodeDirectory, episode.getId(), scriptDirectory, fileMetadata.getId()),
+                EPISODE_CONTENT_TYPE
+        );
 
         return new EpisodeResponse(episode.getId(), presignedUrl);
     }
 
     /**
-     * 에피소드 제목의 유일성을 검증합니다.
+     * 에피소드 제목이 중복되는지 확인합니다.
      *
      * @param episodeRequest 에피소드 생성 요청
      * @throws EpisodeAlreadyExistsException 에피소드 제목이 중복될 경우
      */
-    private void validateEpisodeUniqueness(EpisodeRequest episodeRequest) {
-        if (episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episodeRequest.novelId()).isPresent()) {
-            throw new EpisodeAlreadyExistsException(EPISODE_TITLE_DUPLICATED);
-        }
+    private void checkForDuplicateEpisodeTitle(EpisodeRequest episodeRequest) {
+        episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episodeRequest.novelId())
+                .ifPresent(ep -> { throw new EpisodeAlreadyExistsException(EPISODE_TITLE_DUPLICATED); });
     }
 
     /**
-     * ID로 소설을 찾아 반환합니다.
+     * novelId로 소설을 찾아 반환합니다.
      *
      * @param novelId 소설 ID
      * @return 찾은 소설
@@ -100,10 +107,10 @@ public class EpisodeService {
     }
 
     /**
-     * 에피소드를 생성하고, Episode 엔티티를 저장합니다.
+     * 에피소드를 생성하고, 저장합니다.
      *
      * @param episodeRequest 에피소드 생성 요청
-     * @param novel 소설
+     * @param novel 에피소드가 속한 소설
      * @return 생성된 에피소드
      */
     private Episode createAndSaveEpisode(EpisodeRequest episodeRequest, Novel novel) {
@@ -125,35 +132,23 @@ public class EpisodeService {
     }
 
     /**
-     * 에피소드에 대한 FileMetadata를 생성합니다.
+     * 에피소드에 대한 파일 메타데이터를 생성하고, 저장합니다.
      *
      * @param episode 에피소드
-     * @return 생성된 FileMetadata
+     * @param novelId 에피소드가 속한 소설 ID
+     * @return 생성된 파일 메타데이터
      */
-    private FileMetadata createFileMetadata(Episode episode, String novelId) {
+    private FileMetadata createAndSaveFileMetadata(Episode episode, String novelId) {
+
         FileMetadata fileMetadata = fileMetadataRepository.save(FileMetadata.builder()
                 .type(SCRIPT)
                 .episode(episode)
                 .path("")
                 .build());
 
-        String filePath = "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
-                + novelId + "/" + EPISODE_DIRECTORY + "/" + episode.getId();
+        String filePath = getFilePath(bucketName, region, novelId, episodeDirectory, episode.getId(), scriptDirectory, fileMetadata.getId());
         fileMetadata.setPath(filePath);
 
-        fileMetadata = fileMetadataRepository.save(fileMetadata);
-
-        return fileMetadata;
-    }
-
-    /**
-     * 에피소드에 대한 Presigned URL을 생성합니다.
-     *
-     * @param episodeId 에피소드 ID
-     * @param novelId 소설 ID
-     * @return 생성된 Presigned URL
-     */
-    private String generatePresignedUrl(String episodeId, String novelId) {
-        return fileService.getPresignUrl(novelId, EPISODE_CONTENT_TYPE, episodeId + "/" + EPISODE_DIRECTORY);
+        return fileMetadataRepository.save(fileMetadata);
     }
 }
