@@ -1,20 +1,20 @@
 package com.eatbook.backoffice.domain.novel.controller;
 
+import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.response.NovelSuccessCode;
 import com.eatbook.backoffice.domain.novel.service.NovelService;
 import com.eatbook.backoffice.global.response.ApiResponse;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.GET_NOVEL_LIST;
 import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.NOVEL_CREATED;
 
 /**
@@ -47,5 +47,25 @@ public class NovelController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.of(NOVEL_CREATED, response));
+    }
+    
+    /**
+     * 소설 목록을 조회합니다.
+     *
+     * @param page 조회할 페이지 번호. 1 이상의 값이어야 합니다.
+     * @param size 페이지당 표시할 소설 수. 1 이상의 값이어야 합니다.
+     * @return {@link HttpStatus#OK} 상태 코드를 갖는 ResponseEntity와
+     * 성공 코드 {@link NovelSuccessCode#GET_NOVEL_LIST}를 포함하는 ApiResponse입니다.
+     * 이 ApiResponse에는 조회된 소설 목록이 포함됩니다.
+     */
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse> getNovelList(@RequestParam(name = "page") @Min(1) final int page,
+                                                    @RequestParam(name = "size") @Min(1) final int size) {
+
+        NovelListResponse novelList = novelService.getNovelList(page, size);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(GET_NOVEL_LIST, novelList));
     }
 }
