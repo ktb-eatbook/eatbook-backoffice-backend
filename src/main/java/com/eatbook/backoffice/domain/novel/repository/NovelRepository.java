@@ -8,7 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface NovelRepository extends JpaRepository<Novel, String> {
     @Query(
-            value = "SELECT n FROM Novel n JOIN FETCH n.novelAuthors JOIN FETCH n.novelCategories",
+            value = "SELECT n FROM Novel n " +
+                    "JOIN FETCH n.novelAuthors na " +
+                    "JOIN FETCH na.author a " +
+                    "JOIN FETCH n.novelCategories nc " +
+                    "JOIN FETCH nc.category c",
             countQuery = "SELECT count(n) FROM Novel n")
     Page<Novel> findAllWithAuthorsAndCategories(Pageable pageable);
 }
