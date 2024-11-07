@@ -25,29 +25,22 @@ import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.S3_PRE
 @Slf4j
 public class FileService {
     private final S3Presigner s3Presigner;
-
-    /**
-     * 파일이 업로드될 S3 버킷의 이름입니다.
-     */
+    
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
-
-    /**
-     * 생성된 presigned URL의 유효 기간(분)입니다.
-     */
+    
     @Value("${presigned.url.expiration}")
     private int presignedUrlExpiration;
-
+    
     /**
-     * S3 버킷에 파일을 업로드할 수 있는 presigned URL을 생성합니다.
+     * 지정된 S3 버킷에 객체를 업로드하기 위해 preSignedURL을 생성합니다.
      *
-     * @param objectId       S3 버킷에 저장할 객체(파일)의 ID
-     * @param contentType    객체(파일)의 콘텐츠 타입
-     * @param directoryPath  객체(파일)가 저장될 디렉토리 경로
-     * @return 생성된 presigned URL
+     * @param objectKey     S3 버킷에 저장될 객체의 키
+     * @param contentType   업로드할 객체의 MIME 유형
+     * @return              preSignedURL URL을 문자열로 반환
+     * @throws PresignedUrlGenerationException  preSignedURL 생성 중에 예외가 발생할 경우
      */
-    public String getPresignUrl(String objectId, ContentType contentType, String directoryPath) {
-        String objectKey = createObjectKey(objectId, directoryPath);
+    public String getPresignUrl(String objectKey, ContentType contentType) {
         PutObjectRequest putObjectRequest = createPutObjectRequest(objectKey, contentType.getMimeType());
 
         PresignedPutObjectRequest presignedPutObjectRequest;
@@ -58,19 +51,7 @@ public class FileService {
             throw new PresignedUrlGenerationException(S3_PRE_SIGNED_URL_GENERATION_FAILED, e.getMessage());
         }
 
-        log.info("Presigned URL created successfully for objectId: {}", objectId);
         return presignedPutObjectRequest.url().toString();
-    }
-
-    /**
-     * S3 버킷에 저장할 객체(파일)의 키(key)를 생성합니다.
-     *
-     * @param objectId       객체(파일)의 ID
-     * @param directoryPath  객체(파일)가 저장될 디렉토리 경로
-     * @return 생성된 객체(파일) 키
-     */
-    private String createObjectKey(String objectId, String directoryPath) {
-        return directoryPath + "/" + objectId;
     }
 
     /**

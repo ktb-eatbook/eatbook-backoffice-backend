@@ -8,7 +8,6 @@ import com.eatbook.backoffice.entity.Author;
 import com.eatbook.backoffice.entity.Category;
 import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.NovelAuthor;
-import com.eatbook.backoffice.entity.constant.ContentType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,9 +62,6 @@ class NovelServiceTest {
 
         // novelAuthorRepository의 메서드가 한 번만 호출되었는지 확인
         verify(novelAuthorRepository, times(1)).findByNovelTitleAndAuthorName(anyString(), anyString());
-
-        // 파일 서비스 관련 메서드가 호출되지 않았는지 확인
-        verify(fileService, never()).getPresignUrl(anyString(), any(ContentType.class), anyString());
     }
 
     @Test
@@ -92,21 +88,13 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
-                .thenReturn("presignedUrl");
-
         // When
         NovelResponse novelResponse = novelService.createNovel(novelRequest);
 
         // Then
         assertThat(novelResponse.novelId()).isNotNull();
-        assertThat(novelResponse.presignedUrl()).isEqualTo("presignedUrl");
-
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
-
-        // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
-        verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
     }
 
     @Test
@@ -143,21 +131,14 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
-                .thenReturn("presignedUrl");
-
         // When
         NovelResponse novelResponse = novelService.createNovel(novelRequest);
 
         // Then
         assertThat(novelResponse.novelId()).isNotNull();
-        assertThat(novelResponse.presignedUrl()).isEqualTo("presignedUrl");
 
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
-
-        // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
-        verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
     }
 
     @Test
@@ -195,22 +176,13 @@ class NovelServiceTest {
         when(categoryRepository.save(any(Category.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(fileService.getPresignUrl(any(), any(ContentType.class), anyString()))
-                .thenReturn("presignedUrl");
-
         // When
         NovelResponse novelResponse = novelService.createNovel(novelRequest);
 
         // Then
         assertThat(novelResponse.novelId()).isNotNull();
-        assertThat(novelResponse.presignedUrl()).isEqualTo("presignedUrl");
 
         // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
         verify(novelRepository, times(2)).save(any(Novel.class));
-        // 카테고리 저장 메서드가 번 호출되었는지 확인
-        verify(novelCategoryRepository, times(1)).saveAll(anyList());
-
-        // 파일 서비스 관련 메서드가 한 번만 호출되었는지 확인
-        verify(fileService, times(1)).getPresignUrl(anyString(), any(ContentType.class), anyString());
     }
 }

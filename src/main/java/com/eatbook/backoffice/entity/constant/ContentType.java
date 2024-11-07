@@ -3,7 +3,7 @@ package com.eatbook.backoffice.entity.constant;
 public enum ContentType {
     JPEG("image/jpeg"),
     PNG("image/png"),
-    TXT("text/plain"),
+    TXT("text/plain; charset=UTF-8"),
     PDF("application/pdf"),
     MP3("audio/mpeg"),
     WAV("audio/wav"),

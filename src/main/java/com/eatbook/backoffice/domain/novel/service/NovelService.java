@@ -4,7 +4,9 @@ import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.repository.*;
-import com.eatbook.backoffice.entity.*;
+import com.eatbook.backoffice.entity.Author;
+import com.eatbook.backoffice.entity.Category;
+import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.constant.ContentType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import java.util.List;
 
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
 import static com.eatbook.backoffice.entity.constant.ContentType.JPEG;
+import static com.eatbook.backoffice.global.utils.PathGenerator.generateRelativePath;
+import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
 
 /**
  * 소설을 관리하기 위한 서비스 클래스.
@@ -37,15 +41,9 @@ public class NovelService {
     private static final ContentType COVER_IMAGE_CONTENT_TYPE = JPEG;
     private static final String COVER_IMAGE_DIRECTORY = "cover";
 
-    /**
-     * 파일이 업로드될 S3 버킷의 이름입니다.
-     */
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    /**
-     * AWS S3 버킷의 지역입니다.
-     */
     @Value("${cloud.aws.region.static}")
     private String region;
 
@@ -65,7 +63,7 @@ public class NovelService {
         linkNovelAndAuthor(novel, author);
         linkNovelWithCategories(novel, novelRequest.category());
 
-        String presignedUrl = fileService.getPresignUrl(novel.getId(), COVER_IMAGE_CONTENT_TYPE, COVER_IMAGE_DIRECTORY);
+        String presignedUrl = fileService.getPresignUrl(generateRelativePath(COVER_IMAGE_DIRECTORY, novel.getId()), COVER_IMAGE_CONTENT_TYPE);
 
         return new NovelResponse(novel.getId(), presignedUrl);
     }
@@ -97,18 +95,18 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = getCoverImageUrl(newNovel);
-        newNovel.setCoverImageUrl(coverImageUrl);
+        String coverImageUrl = getFilePath(
+                bucketName,
+                region,
+                COVER_IMAGE_DIRECTORY,
+                newNovel.getId()
+        );
 
+        newNovel.setCoverImageUrl(coverImageUrl);
         newNovel = novelRepository.save(newNovel);
 
         log.info("새로운 소설이 생성됨: {} - 제목: {}", newNovel.getId(), newNovel.getTitle());
         return newNovel;
-    }
-
-    private String getCoverImageUrl(Novel newNovel) {
-        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/"
-                + COVER_IMAGE_DIRECTORY + "/" + newNovel.getId();
     }
 
     /**
@@ -148,10 +146,8 @@ public class NovelService {
         for (String categoryName : categoryNames) {
             Category category = categoryRepository.findByName(categoryName)
                     .orElseGet(() -> categoryRepository.save(Category.builder().name(categoryName).build()));
-
             novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
-        novelCategoryRepository.saveAll(novel.getNovelCategories());
     }
 }

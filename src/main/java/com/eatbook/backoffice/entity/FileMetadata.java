@@ -16,6 +16,7 @@ public class FileMetadata extends BaseEntity {
 
     @Id
     @Column(length = 36)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
@@ -51,5 +52,9 @@ public class FileMetadata extends BaseEntity {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public void setPath(String presignedUrl) {
+        this.path = presignedUrl;
     }
 }
