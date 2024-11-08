@@ -51,6 +51,9 @@ public class Novel extends SoftDeletableEntity {
     @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<NovelCategory> novelCategories = new HashSet<>();
 
+    @OneToMany(mappedBy = "novel", fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Favorite> favorites = new ArrayList<>();
+
     @Builder
     public Novel(String title, String coverImageUrl, String summary, int viewCount, boolean isCompleted, int publicationYear) {
         this.title = title;
