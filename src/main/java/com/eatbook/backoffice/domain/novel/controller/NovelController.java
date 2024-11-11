@@ -25,7 +25,7 @@ import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.NOVE
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/admin/novel")
+@RequestMapping("/api/admin")
 public class NovelController {
     private final NovelService novelService;
 
@@ -58,7 +58,7 @@ public class NovelController {
      * 성공 코드 {@link NovelSuccessCode#GET_NOVEL_LIST}를 포함하는 ApiResponse입니다.
      * 이 ApiResponse에는 조회된 소설 목록이 포함됩니다.
      */
-    @GetMapping("/list")
+    @GetMapping("/novels")
     public ResponseEntity<ApiResponse> getNovelList(@RequestParam(name = "page") @Min(1) final int page,
                                                     @RequestParam(name = "size") @Min(1) final int size) {
 
