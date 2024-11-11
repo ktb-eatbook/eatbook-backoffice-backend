@@ -1,4 +1,3 @@
-// NovelListResponse.java
 package com.eatbook.backoffice.domain.novel.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
