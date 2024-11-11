@@ -153,12 +153,15 @@ class NovelServiceTest {
         Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
                 .thenReturn(paginatedNovels);
 
+        int totalElements = novels.size();
+        int expectedTotalPages = (totalElements + size - 1) / size;
+
         // when
         NovelListResponse result = novelService.getNovelList(page, size);
 
         // then
         assertEquals(novels.size(), result.totalElements());
-        assertEquals((novels.size()+size-1)/size, result.totalPages());
+        assertEquals(expectedTotalPages, result.totalPages());
         assertEquals(page, result.currentPage());
         assertEquals(size, result.size());
     }
