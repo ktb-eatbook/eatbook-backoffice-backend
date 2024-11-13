@@ -1,9 +1,6 @@
 package com.eatbook.backoffice.domain.novel.service;
 
-import com.eatbook.backoffice.domain.novel.dto.NovelInfo;
-import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
-import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
@@ -85,14 +82,15 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelListResponse getNovelList(int page, int size) {
-        Pageable pageable = PageRequest.of(page -1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Novel> novelPage = novelRepository.findAllWithAuthorsAndCategories(pageable);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<String> novelIds = novelRepository.findNovelIds(pageable);
+        List<Novel> allByIdsWithAuthorsAndCategories = novelRepository.findAllByIdsWithAuthorsAndCategories(novelIds.getContent());
 
-        if (page > novelPage.getTotalPages() + 1) {
+        if (page > novelIds.getTotalPages() + 1) {
             throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
         }
 
-        List<NovelInfo> novelInfoList = novelPage.getContent().stream()
+        List<NovelInfo> novelInfoList = allByIdsWithAuthorsAndCategories.stream()
                 .map(novel -> NovelInfo.of(
                         novel.getId(),
                         novel.getTitle(),
@@ -103,10 +101,10 @@ public class NovelService {
                 .collect(Collectors.toList());
 
         return NovelListResponse.of(
-                (int) novelPage.getTotalElements(),
-                novelPage.getTotalPages(),
-                novelPage.getNumber()+1,
-                novelPage.getSize(),
+                (int) novelIds.getTotalElements(),
+                novelIds.getTotalPages(),
+                novelIds.getNumber() + 1,
+                novelIds.getSize(),
                 novelInfoList
         );
     }
@@ -192,6 +190,7 @@ public class NovelService {
             novel.addCategory(category);
             log.info("카테고리 {}: {} - 이름: {}", categoryIndex++, category.getId(), category.getName());
         }
+        novelCategoryRepository.saveAll(novel.getNovelCategories());
     }
 
     /**
