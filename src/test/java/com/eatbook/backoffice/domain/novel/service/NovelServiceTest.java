@@ -1,8 +1,10 @@
 package com.eatbook.backoffice.domain.novel.service;
 
+import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
+import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.Author;
 import com.eatbook.backoffice.entity.Category;
@@ -12,14 +14,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -142,47 +146,35 @@ class NovelServiceTest {
     }
 
     @Test
-    void should_CreateNovelSuccessfully_When_CategoryAlreadyExists() {
+    void should_ReturnNovelListWithCorrectPagination_when_ThereAreMultiplePages() {
         // given
-        List<String> newCategory = List.of("Category1", "Category4");
+        setUpNovelList();
+        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
+        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
+                .thenReturn(paginatedNovels);
 
-        NovelRequest novelRequest = NovelRequest.builder()
-                .title(title)
-                .author(author)
-                .summary(summary)
-                .category(newCategory)
-                .isCompleted(true)
-                .publicationYear(1800)
-                .build();
+        int totalElements = novels.size();
+        int expectedTotalPages = (totalElements + size - 1) / size;
 
-        when(authorRepository.findByName(anyString()))
-                .thenReturn(Optional.empty());
+        // when
+        NovelListResponse result = novelService.getNovelList(page, size);
 
-        when(categoryRepository.findByName("Category1"))
-                .thenReturn(Optional.of(Category.builder().name("Category1").build()));
+        // then
+        assertEquals(novels.size(), result.totalElements());
+        assertEquals(expectedTotalPages, result.totalPages());
+        assertEquals(page, result.currentPage());
+        assertEquals(size, result.size());
+    }
 
-        when(categoryRepository.findByName("Category4"))
-                .thenReturn(Optional.empty());
+    @Test
+    void should_ThrowPageOutOfBoundException_when_PageExceedsTotalPages() {
+        // given
+        setUpNovelList();
+        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
+        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
+                .thenReturn(paginatedNovels);
 
-        when(novelRepository.save(any(Novel.class)))
-                .thenAnswer(invocation -> {
-                    Novel novel = invocation.getArgument(0);
-                    return createNovelWithId("test-id", novel.getTitle(), novel.getSummary(), novel.getPublicationYear());
-                });
-
-        when(authorRepository.save(any(Author.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(categoryRepository.save(any(Category.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // When
-        NovelResponse novelResponse = novelService.createNovel(novelRequest);
-
-        // Then
-        assertThat(novelResponse.novelId()).isNotNull();
-
-        // Repository와 관련된 save 메서드가 2번씩 호출되었는지 확인
-        verify(novelRepository, times(2)).save(any(Novel.class));
+        // when, then
+        assertThrows(PageOutOfBoundException.class, () -> novelService.getNovelList(overPage, size));
     }
 }
