@@ -1,9 +1,6 @@
 package com.eatbook.backoffice.domain.novel.service;
 
-import com.eatbook.backoffice.domain.novel.dto.NovelInfo;
-import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
-import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
@@ -109,6 +106,12 @@ public class NovelService {
                 novelPage.getSize(),
                 novelInfoList
         );
+    }
+
+    @Transactional(readOnly = true)
+    public NovelDetailResponse getNovelDetail(String novelId) {
+        NovelDetailResponse novelDetail = novelRepository.findNovelDetailById(novelId);
+        return novelDetail;
     }
 
     /**
