@@ -35,6 +35,8 @@ public class QNovel extends EntityPathBase<Novel> {
 
     public final ListPath<Episode, QEpisode> episodes = this.<Episode, QEpisode>createList("episodes", Episode.class, QEpisode.class, PathInits.DIRECT2);
 
+    public final ListPath<Favorite, QFavorite> favorites = this.<Favorite, QFavorite>createList("favorites", Favorite.class, QFavorite.class, PathInits.DIRECT2);
+
     public final StringPath id = createString("id");
 
     public final BooleanPath isCompleted = createBoolean("isCompleted");
