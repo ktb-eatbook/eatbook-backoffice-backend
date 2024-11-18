@@ -1,9 +1,11 @@
 package com.eatbook.backoffice.domain.novel.service;
 
+import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
+import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.Author;
@@ -24,9 +26,9 @@ import java.util.Optional;
 
 import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
+import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_NOT_FOUND;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -148,7 +150,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void should_ReturnNovelListWithCorrectPagination_when_ThereAreMultiplePages() {
+    void should_ReturnNovelListWithCorrectPagination_When_ThereAreMultiplePages() {
         // given
         setUpNovelList();
         List<String> novelIds = novels.stream().map(Novel::getId).toList();
@@ -173,7 +175,7 @@ class NovelServiceTest {
     }
 
     @Test
-    void should_ThrowPageOutOfBoundException_when_PageExceedsTotalPages() {
+    void should_ThrowPageOutOfBoundException_When_PageExceedsTotalPages() {
         // given
         setUpNovelList();
         List<String> novelIds = novels.stream().map(Novel::getId).toList();
@@ -185,4 +187,40 @@ class NovelServiceTest {
         // when, then
         assertThrows(PageOutOfBoundException.class, () -> novelService.getNovelList(overPage, size));
     }
+
+    @Test
+    void should_ReturnNovelDetail_When_ValidNovelIdProvided() {
+        // given
+        NovelDetailResponse expectedResponse = createDetailResponse(testId);
+
+        Mockito.when(novelRepository.findNovelDetailById(testId))
+                .thenReturn(expectedResponse);
+
+        // when
+        NovelDetailResponse result = novelService.getNovelDetail(testId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(expectedResponse.id(), result.id());
+        assertEquals(expectedResponse.title(), result.title());
+        assertEquals(expectedResponse.authorList(), result.authorList());
+        assertEquals(expectedResponse.categoryList(), result.categoryList());
+        assertEquals(expectedResponse.coverImageUrl(), result.coverImageUrl());
+        assertEquals(expectedResponse.summary(), result.summary());
+        assertEquals(expectedResponse.isCompleted(), result.isCompleted());
+        assertEquals(expectedResponse.publicationYear(), result.publicationYear());
+        assertEquals(expectedResponse.views(), result.views());
+        assertEquals(expectedResponse.likes(), result.likes());
+    }
+
+    @Test
+    void should_ThrowNovelNotFoundException_When_NovelIdIsInvalid() {
+        // given
+        Mockito.when(novelRepository.findNovelDetailById(invalidId))
+                .thenThrow(new NovelNotFoundException(NOVEL_NOT_FOUND));
+
+        // when, then
+        assertThrows(NovelNotFoundException.class, () -> novelService.getNovelDetail(invalidId));
+    }
+
 }

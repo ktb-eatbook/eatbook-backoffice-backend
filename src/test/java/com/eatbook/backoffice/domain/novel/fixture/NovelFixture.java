@@ -1,5 +1,6 @@
 package com.eatbook.backoffice.domain.novel.fixture;
 
+import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.entity.Novel;
 import org.springframework.data.domain.*;
@@ -11,11 +12,14 @@ public class NovelFixture {
 
     public static final String title = "Valid Title";
     public static final String author = "Valid Author";
+    public static final List<String> authorList = List.of("Valid Author1", "Valid Author2");
     public static final String summary = "Valid Summary";
     public static final List<String> category = List.of("Valid Category");
     public static final boolean isCompleted = true;
     public static final int publicationYear = 1800;
+    public static final String coverImageUrl = "https://cover-image-url.com";
     public static final String testId = "2ed5d018-1499-407f-a73f-23ab142ba593";
+    public static final String invalidId = "nonexistent-id";
     public static final int page = 1;
     public static final int overPage = 100;
     public static final int size = 2;
@@ -79,5 +83,21 @@ public class NovelFixture {
         int start = Math.min((page - 1) * size, ids.size());
         int end = Math.min(start + size, ids.size());
         return new PageImpl<>(ids.subList(start, end), pageable, ids.size());
+    }
+
+    // 헬퍼 메서드: 테스트용 NovelDetailResponse 생성
+    public static NovelDetailResponse createDetailResponse(String novelId) {
+        return NovelDetailResponse.builder()
+                .id(novelId)
+                .title(title)
+                .authorList(authorList)
+                .categoryList(category)
+                .coverImageUrl(coverImageUrl)
+                .summary(summary)
+                .isCompleted(isCompleted)
+                .publicationYear(publicationYear)
+                .views(100)
+                .likes(50)
+                .build();
     }
 }
