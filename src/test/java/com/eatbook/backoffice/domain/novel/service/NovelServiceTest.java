@@ -256,4 +256,22 @@ class NovelServiceTest {
         assertTrue(result.commentList().isEmpty());
     }
 
+    @Test
+    void should_ReturnNovelEpisodes_When_ValidNovelIdProvided() {
+        // Given
+        List<EpisodeInfo> mockEpisodes = setUpMockEpisodes();
+
+        NovelEpisodeListResponse mockResponse = NovelEpisodeListResponse.of(testId, mockEpisodes);
+
+        when(novelRepository.findNovelEpisodeListById(testId)).thenReturn(mockResponse);
+
+        // When
+        NovelEpisodeListResponse result = novelService.getNovelEpisodes(testId);
+
+        // Then
+        assertEquals(mockResponse.id(), result.id());
+        assertEquals(mockResponse.episodeList().size(), result.episodeList().size());
+        assertEquals(mockResponse.episodeList().get(0).title(), result.episodeList().get(0).title());
+    }
+
 }
