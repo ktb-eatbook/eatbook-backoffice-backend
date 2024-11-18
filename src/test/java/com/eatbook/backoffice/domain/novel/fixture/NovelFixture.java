@@ -72,4 +72,12 @@ public class NovelFixture {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return new PageImpl<>(novels.subList(0, Math.min(size, novels.size())), pageable, novels.size());
     }
+
+    // 헬퍼 메서드: 테스트용 Page<String> 생성
+    public static Page<String> createPaginatedIds(int page, int size, List<String> ids) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        int start = Math.min((page - 1) * size, ids.size());
+        int end = Math.min(start + size, ids.size());
+        return new PageImpl<>(ids.subList(start, end), pageable, ids.size());
+    }
 }
