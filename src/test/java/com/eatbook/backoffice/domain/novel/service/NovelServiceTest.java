@@ -16,8 +16,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
@@ -149,9 +151,13 @@ class NovelServiceTest {
     void should_ReturnNovelListWithCorrectPagination_when_ThereAreMultiplePages() {
         // given
         setUpNovelList();
-        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
-        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
-                .thenReturn(paginatedNovels);
+        List<String> novelIds = novels.stream().map(Novel::getId).toList();
+        Page<String> paginatedIds = createPaginatedIds(page, size, novelIds);
+        Mockito.when(novelRepository.findNovelIds(any(Pageable.class)))
+                .thenReturn(paginatedIds);
+
+        Mockito.when(novelRepository.findAllByIdsWithAuthorsAndCategories(anyList()))
+                .thenReturn(novels);
 
         int totalElements = novels.size();
         int expectedTotalPages = (totalElements + size - 1) / size;
@@ -160,7 +166,7 @@ class NovelServiceTest {
         NovelListResponse result = novelService.getNovelList(page, size);
 
         // then
-        assertEquals(novels.size(), result.totalElements());
+        assertEquals(totalElements, result.totalElements());
         assertEquals(expectedTotalPages, result.totalPages());
         assertEquals(page, result.currentPage());
         assertEquals(size, result.size());
@@ -170,9 +176,11 @@ class NovelServiceTest {
     void should_ThrowPageOutOfBoundException_when_PageExceedsTotalPages() {
         // given
         setUpNovelList();
-        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
-        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
-                .thenReturn(paginatedNovels);
+        List<String> novelIds = novels.stream().map(Novel::getId).toList();
+        Page<String> paginatedIds = createPaginatedIds(page, size, novelIds);
+
+        Mockito.when(novelRepository.findNovelIds(any(Pageable.class)))
+                .thenReturn(paginatedIds);
 
         // when, then
         assertThrows(PageOutOfBoundException.class, () -> novelService.getNovelList(overPage, size));
