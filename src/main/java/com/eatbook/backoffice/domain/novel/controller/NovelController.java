@@ -49,7 +49,7 @@ public class NovelController {
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.of(NOVEL_CREATED, response));
     }
-    
+
     /**
      * 소설 목록을 조회합니다.
      *
