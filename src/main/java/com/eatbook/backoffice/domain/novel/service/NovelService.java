@@ -73,12 +73,14 @@ public class NovelService {
     }
 
     /**
-     * 지정된 페이지에 있는 소설 목록과 관련된 저자, 카테고리를 가져옵니다.
+     * 제목과 저자를 기준으로 소설의 유일성을 검증합니다.
+     * 만약 같은 제목과 저자를 가진 소설이 이미 존재할 경우, NovelAlreadyExistsException을 발생시킵니다.
+     * 페이지네이션을 통해 소설 목록을 가져옵니다.
      *
-     * @param page 검색할 페이지 번호 (1-indexed)
+     * @param page 페이지 번호 (1-indexed)
      * @param size 페이지 당 소설 수
-     * @return {@link NovelListResponse} - 총 소설 수, 총 페이지 수, 현재 페이지 번호, 페이지 당 소설 수, 소설 정보 목록
-     * @throws PageOutOfBoundException 지정된 페이지가 총 페이지 수를 초과할 경우
+     * @return NovelListResponse - 소설 목록과 메타 정보
+     * @throws PageOutOfBoundException 페이지 범위 초과 시 발생
      */
     @Transactional(readOnly = true)
     public NovelListResponse getNovelList(int page, int size) {
@@ -106,6 +108,18 @@ public class NovelService {
                 novelIds.getNumber() + 1,
                 novelIds.getSize(),
                 novelInfoList);
+    }
+
+    /**
+     * 소설 Id로 소설에 대한 상세 정보를 가져옵니다.
+     *
+     * @param novelId 소설 Id
+     * @return {@link NovelDetailResponse} 객체로, 소설에 대한 상세 정보를 담고 있습니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelDetailResponse getNovelDetail(String novelId) {
+        NovelDetailResponse novelDetail = novelRepository.findNovelDetailById(novelId);
+        return novelDetail;
     }
 
     /**
@@ -188,10 +202,10 @@ public class NovelService {
     }
 
     /**
-     * 주어진 소설과 연관된 저자 이름 목록을 반환합니다.
+     * 소설과 연관된 저자 이름 목록을 반환합니다.
      *
-     * @param novel 저자 이름을 추출할 소설 엔티티
-     * @return 소설과 연관된 저자 이름 목록
+     * @param novel 저자 목록을 가져올 소설 엔티티
+     * @return 저자 이름 목록
      */
     private List<String> getAuthorNames(Novel novel) {
         return novel.getNovelAuthors().stream()
@@ -201,9 +215,10 @@ public class NovelService {
     }
 
     /**
-     주어진 소설과 관련된 카테고리 이름 목록을 반환합니다.
-     @param novel 카테고리 이름을 추출할 소설 엔티티
-     @return 소설과 관련된 카테고리 이름 목록
+     * 소설과 연관된 카테고리 이름 목록을 반환합니다.
+     *
+     * @param novel 카테고리 목록을 가져올 소설 엔티티
+     * @return 카테고리 이름 목록
      */
     private List<String> getCategoryNames(Novel novel) {
         return novel.getNovelCategories().stream()
