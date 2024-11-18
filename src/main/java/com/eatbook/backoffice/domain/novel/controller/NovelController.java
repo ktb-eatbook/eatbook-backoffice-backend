@@ -1,5 +1,6 @@
 package com.eatbook.backoffice.domain.novel.controller;
 
+import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
@@ -67,5 +68,23 @@ public class NovelController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(GET_NOVEL_LIST, novelList));
+    }
+
+    /**
+     * 소설 상세 정보를 조회합니다.
+     *
+     * @param novelId 조회할 소설의 Id
+     * @return {@link HttpStatus#OK} 상태 코드를 갖는 ResponseEntity와
+     * 성공 코드 {@link NovelSuccessCode#GET_NOVEL_DETAIL}를 포함하는 ApiResponse입니다.
+     * 이 ApiResponse에는 조회된 소설 상세 정보가 포함됩니다.
+     */
+    @GetMapping("/novels/{novelId}")
+    public ResponseEntity<ApiResponse> getNovelDetail(@PathVariable(name = "novelId") final String novelId) {
+
+        NovelDetailResponse novelDetail = novelService.getNovelDetail(novelId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_DETAIL, novelDetail));
     }
 }
