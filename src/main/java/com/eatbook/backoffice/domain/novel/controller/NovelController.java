@@ -1,9 +1,6 @@
 package com.eatbook.backoffice.domain.novel.controller;
 
-import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
-import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.response.NovelSuccessCode;
 import com.eatbook.backoffice.domain.novel.service.NovelService;
 import com.eatbook.backoffice.global.response.ApiResponse;
@@ -86,5 +83,15 @@ public class NovelController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_DETAIL, novelDetail));
+    }
+
+    @GetMapping("/novels/{novelId}/comments")
+    public ResponseEntity<ApiResponse> getNovelComments(@PathVariable(name = "novelId") final String novelId) {
+
+        NovelCommentListResponse novelComments = novelService.getNovelComments(novelId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_DETAIL, novelComments));
     }
 }

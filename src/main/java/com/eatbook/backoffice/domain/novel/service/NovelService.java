@@ -123,6 +123,17 @@ public class NovelService {
     }
 
     /**
+     * 소설 Id로 소설에 대한 댓글 목록을 가져옵니다.
+     *
+     * @param novelId 소설 Id
+     * @return {@link NovelCommentListResponse} 객체로, 지정된 소설에 대한 댓글 목록을 포함합니다.
+     */
+    public NovelCommentListResponse getNovelComments(String novelId) {
+        NovelCommentListResponse novelCommentList = novelRepository.findNovelCommentListById(novelId);
+        return novelCommentList;
+    }
+
+    /**
      * 중복 소설을 방지하기 위한 검증 메서드.
      *
      * @param title 소설 제목
