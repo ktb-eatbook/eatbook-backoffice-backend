@@ -1,11 +1,13 @@
 package com.eatbook.backoffice.domain.novel.fixture;
 
+import com.eatbook.backoffice.domain.novel.dto.CommentInfo;
 import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.entity.Novel;
 import org.springframework.data.domain.*;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class NovelFixture {
@@ -99,5 +101,13 @@ public class NovelFixture {
                 .views(100)
                 .likes(50)
                 .build();
+    }
+
+    // 헬퍼 메서드: 테스트용 CommentInfo 리스트 생성
+    public static List<CommentInfo> setUpMockComments() {
+        return List.of(
+                new CommentInfo("comment-1", 1, "Episode 1", "user-1", "User One", "Great episode!", LocalDateTime.now(), LocalDateTime.now()),
+                new CommentInfo("comment-2", 2, "Episode 2", "user-2", "User Two", "Loved it!", LocalDateTime.now(), LocalDateTime.now())
+        );
     }
 }
