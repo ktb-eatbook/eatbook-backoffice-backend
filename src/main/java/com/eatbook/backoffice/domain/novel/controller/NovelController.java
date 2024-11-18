@@ -102,4 +102,22 @@ public class NovelController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_COMMENT_LIST, novelComments));
     }
+
+    /**
+     * 소설의 에피소드 목록을 조회합니다.
+     *
+     * @param novelId 조회할 소설의 Id. 이 값은 URL 경로에 지정되며, 비어 있지 않아야 합니다.
+     * @return {@link HttpStatus#OK} 상태 코드를 갖는 ResponseEntity와
+     * 성공 코드 {@link NovelSuccessCode#GET_NOVEL_EPISODE_LIST}를 포함하는 ApiResponse입니다.
+     * 이 ApiResponse에는 조회된 소설의 에피소드 목록이 포함됩니다.
+     */
+    @GetMapping("/novels/{novelId}/episodes")
+    public ResponseEntity<ApiResponse> getNovelEpisodes(@PathVariable(name = "novelId") final String novelId) {
+
+        NovelEpisodeListResponse novelEpisodes = novelService.getNovelEpisodes(novelId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_EPISODE_LIST, novelEpisodes));
+    }
 }
