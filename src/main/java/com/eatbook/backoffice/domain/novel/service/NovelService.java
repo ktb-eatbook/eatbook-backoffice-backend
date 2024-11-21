@@ -122,6 +122,29 @@ public class NovelService {
     }
 
     /**
+     * 소설 Id로 소설에 대한 댓글 목록을 가져옵니다.
+     *
+     * @param novelId 소설 Id
+     * @return {@link NovelCommentListResponse} 객체로, 지정된 소설에 대한 댓글 목록을 포함합니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelCommentListResponse getNovelComments(String novelId) {
+        return novelRepository.findNovelCommentListById(novelId);
+    }
+
+    /**
+     * 지정된 소설에 대한 에피소드 목록을 가져옵니다.
+     *
+     * @param novelId 소설의 고유 식별자
+     * @return 지정된 소설에 대한 에피소드 목록이 포함된 {@link NovelEpisodeListResponse} 객체
+     *         에피소드가 없으면 빈 목록을 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelEpisodeListResponse getNovelEpisodes(String novelId) {
+        return novelRepository.findNovelEpisodeListById(novelId);
+    }
+
+    /**
      * 중복 소설을 방지하기 위한 검증 메서드.
      *
      * @param title 소설 제목

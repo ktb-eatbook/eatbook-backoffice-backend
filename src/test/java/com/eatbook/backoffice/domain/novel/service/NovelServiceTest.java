@@ -1,9 +1,6 @@
 package com.eatbook.backoffice.domain.novel.service;
 
-import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
-import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
@@ -213,6 +210,60 @@ class NovelServiceTest {
 
         // when, then
         assertThrows(NovelNotFoundException.class, () -> novelService.getNovelDetail(invalidId));
+    }
+
+
+    @Test
+    void should_ReturnNovelComments_When_ValidNovelIdProvided() {
+        // given
+        List<CommentInfo> mockCommentResponse = setUpMockComments();
+
+        NovelCommentListResponse mockResponse = NovelCommentListResponse.of(testId, mockCommentResponse);
+
+        when(novelRepository.findNovelCommentListById(testId)).thenReturn(mockResponse);
+
+        // when
+        NovelCommentListResponse result = novelService.getNovelComments(testId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(testId, result.id());
+        assertEquals(mockCommentResponse.size(), result.commentList().size());
+        assertEquals(mockCommentResponse.get(0).content(), result.commentList().get(0).content());
+    }
+
+    @Test
+    void should_ReturnEmptyComments_When_NoCommentsExist() {
+        // given
+        NovelCommentListResponse mockResponse = NovelCommentListResponse.of(testId, List.of());
+
+        when(novelRepository.findNovelCommentListById(testId)).thenReturn(mockResponse);
+
+        // when
+        NovelCommentListResponse result = novelService.getNovelComments(testId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(testId, result.id());
+        assertTrue(result.commentList().isEmpty());
+    }
+
+    @Test
+    void should_ReturnNovelEpisodes_When_ValidNovelIdProvided() {
+        // Given
+        List<EpisodeInfo> mockEpisodes = setUpMockEpisodes();
+
+        NovelEpisodeListResponse mockResponse = NovelEpisodeListResponse.of(testId, mockEpisodes);
+
+        when(novelRepository.findNovelEpisodeListById(testId)).thenReturn(mockResponse);
+
+        // When
+        NovelEpisodeListResponse result = novelService.getNovelEpisodes(testId);
+
+        // Then
+        assertEquals(mockResponse.id(), result.id());
+        assertEquals(mockResponse.episodeList().size(), result.episodeList().size());
+        assertEquals(mockResponse.episodeList().get(0).title(), result.episodeList().get(0).title());
     }
 
 }
