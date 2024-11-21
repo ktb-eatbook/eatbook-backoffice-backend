@@ -73,6 +73,8 @@ public class NovelService {
     }
 
     /**
+     * 제목과 저자를 기준으로 소설의 유일성을 검증합니다.
+     * 만약 같은 제목과 저자를 가진 소설이 이미 존재할 경우, NovelAlreadyExistsException을 발생시킵니다.
      * 페이지네이션을 통해 소설 목록을 가져옵니다.
      *
      * @param page 페이지 번호 (1-indexed)
@@ -106,6 +108,40 @@ public class NovelService {
                 novelIds.getNumber() + 1,
                 novelIds.getSize(),
                 novelInfoList);
+    }
+
+    /**
+     * 소설 Id로 소설에 대한 상세 정보를 가져옵니다.
+     *
+     * @param novelId 소설 Id
+     * @return {@link NovelDetailResponse} 객체로, 소설에 대한 상세 정보를 담고 있습니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelDetailResponse getNovelDetail(String novelId) {
+        return novelRepository.findNovelDetailById(novelId);
+    }
+
+    /**
+     * 소설 Id로 소설에 대한 댓글 목록을 가져옵니다.
+     *
+     * @param novelId 소설 Id
+     * @return {@link NovelCommentListResponse} 객체로, 지정된 소설에 대한 댓글 목록을 포함합니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelCommentListResponse getNovelComments(String novelId) {
+        return novelRepository.findNovelCommentListById(novelId);
+    }
+
+    /**
+     * 지정된 소설에 대한 에피소드 목록을 가져옵니다.
+     *
+     * @param novelId 소설의 고유 식별자
+     * @return 지정된 소설에 대한 에피소드 목록이 포함된 {@link NovelEpisodeListResponse} 객체
+     *         에피소드가 없으면 빈 목록을 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelEpisodeListResponse getNovelEpisodes(String novelId) {
+        return novelRepository.findNovelEpisodeListById(novelId);
     }
 
     /**

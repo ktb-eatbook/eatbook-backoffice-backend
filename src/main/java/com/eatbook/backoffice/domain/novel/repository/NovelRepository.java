@@ -1,5 +1,6 @@
 package com.eatbook.backoffice.domain.novel.repository;
 
+import com.eatbook.backoffice.domain.novel.repository.queryDSL.NovelCustomRepository;
 import com.eatbook.backoffice.entity.Novel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface NovelRepository extends JpaRepository<Novel, String> {
+public interface NovelRepository extends JpaRepository<Novel, String>, NovelCustomRepository {
 
     @Query("SELECT n.id FROM Novel n ORDER BY n.createdAt DESC")
     Page<String> findNovelIds(Pageable pageable);

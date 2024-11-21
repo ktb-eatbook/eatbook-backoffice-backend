@@ -1,9 +1,8 @@
 package com.eatbook.backoffice.domain.novel.service;
 
-import com.eatbook.backoffice.domain.novel.dto.NovelListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
-import com.eatbook.backoffice.domain.novel.dto.NovelResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
+import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
 import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.Author;
@@ -16,15 +15,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.eatbook.backoffice.domain.novel.fixture.NovelFixture.*;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
+import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_NOT_FOUND;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -146,12 +147,16 @@ class NovelServiceTest {
     }
 
     @Test
-    void should_ReturnNovelListWithCorrectPagination_when_ThereAreMultiplePages() {
+    void should_ReturnNovelListWithCorrectPagination_When_ThereAreMultiplePages() {
         // given
         setUpNovelList();
-        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
-        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
-                .thenReturn(paginatedNovels);
+        List<String> novelIds = novels.stream().map(Novel::getId).toList();
+        Page<String> paginatedIds = createPaginatedIds(page, size, novelIds);
+        Mockito.when(novelRepository.findNovelIds(any(Pageable.class)))
+                .thenReturn(paginatedIds);
+
+        Mockito.when(novelRepository.findAllByIdsWithAuthorsAndCategories(anyList()))
+                .thenReturn(novels);
 
         int totalElements = novels.size();
         int expectedTotalPages = (totalElements + size - 1) / size;
@@ -160,21 +165,105 @@ class NovelServiceTest {
         NovelListResponse result = novelService.getNovelList(page, size);
 
         // then
-        assertEquals(novels.size(), result.totalElements());
+        assertEquals(totalElements, result.totalElements());
         assertEquals(expectedTotalPages, result.totalPages());
         assertEquals(page, result.currentPage());
         assertEquals(size, result.size());
     }
 
     @Test
-    void should_ThrowPageOutOfBoundException_when_PageExceedsTotalPages() {
+    void should_ThrowPageOutOfBoundException_When_PageExceedsTotalPages() {
         // given
         setUpNovelList();
-        Page<Novel> paginatedNovels = createPaginatedNovels(page, size, novels);
-        Mockito.when(novelRepository.findAllWithAuthorsAndCategories(any(Pageable.class)))
-                .thenReturn(paginatedNovels);
+        List<String> novelIds = novels.stream().map(Novel::getId).toList();
+        Page<String> paginatedIds = createPaginatedIds(page, size, novelIds);
+
+        Mockito.when(novelRepository.findNovelIds(any(Pageable.class)))
+                .thenReturn(paginatedIds);
 
         // when, then
         assertThrows(PageOutOfBoundException.class, () -> novelService.getNovelList(overPage, size));
     }
+
+    @Test
+    void should_ReturnNovelDetail_When_ValidNovelIdProvided() {
+        // given
+        NovelDetailResponse expectedResponse = createDetailResponse(testId);
+
+        Mockito.when(novelRepository.findNovelDetailById(testId))
+                .thenReturn(expectedResponse);
+
+        // when
+        NovelDetailResponse result = novelService.getNovelDetail(testId);
+
+        // then
+        assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedResponse);
+    }
+
+    @Test
+    void should_ThrowNovelNotFoundException_When_NovelIdIsInvalid() {
+        // given
+        Mockito.when(novelRepository.findNovelDetailById(invalidId))
+                .thenThrow(new NovelNotFoundException(NOVEL_NOT_FOUND));
+
+        // when, then
+        assertThrows(NovelNotFoundException.class, () -> novelService.getNovelDetail(invalidId));
+    }
+
+
+    @Test
+    void should_ReturnNovelComments_When_ValidNovelIdProvided() {
+        // given
+        List<CommentInfo> mockCommentResponse = setUpMockComments();
+
+        NovelCommentListResponse mockResponse = NovelCommentListResponse.of(testId, mockCommentResponse);
+
+        when(novelRepository.findNovelCommentListById(testId)).thenReturn(mockResponse);
+
+        // when
+        NovelCommentListResponse result = novelService.getNovelComments(testId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(testId, result.id());
+        assertEquals(mockCommentResponse.size(), result.commentList().size());
+        assertEquals(mockCommentResponse.get(0).content(), result.commentList().get(0).content());
+    }
+
+    @Test
+    void should_ReturnEmptyComments_When_NoCommentsExist() {
+        // given
+        NovelCommentListResponse mockResponse = NovelCommentListResponse.of(testId, List.of());
+
+        when(novelRepository.findNovelCommentListById(testId)).thenReturn(mockResponse);
+
+        // when
+        NovelCommentListResponse result = novelService.getNovelComments(testId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(testId, result.id());
+        assertTrue(result.commentList().isEmpty());
+    }
+
+    @Test
+    void should_ReturnNovelEpisodes_When_ValidNovelIdProvided() {
+        // Given
+        List<EpisodeInfo> mockEpisodes = setUpMockEpisodes();
+
+        NovelEpisodeListResponse mockResponse = NovelEpisodeListResponse.of(testId, mockEpisodes);
+
+        when(novelRepository.findNovelEpisodeListById(testId)).thenReturn(mockResponse);
+
+        // When
+        NovelEpisodeListResponse result = novelService.getNovelEpisodes(testId);
+
+        // Then
+        assertEquals(mockResponse.id(), result.id());
+        assertEquals(mockResponse.episodeList().size(), result.episodeList().size());
+        assertEquals(mockResponse.episodeList().get(0).title(), result.episodeList().get(0).title());
+    }
+
 }
