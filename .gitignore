@@ -116,3 +116,5 @@ src/main/resources/application.yml
 # Ignore IntelliJ's build directories
 out/
 
+# Ignore generated files
+src/main/generated/
