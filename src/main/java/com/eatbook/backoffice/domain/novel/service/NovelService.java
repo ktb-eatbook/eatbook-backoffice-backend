@@ -128,8 +128,7 @@ public class NovelService {
      * @return {@link NovelCommentListResponse} 객체로, 지정된 소설에 대한 댓글 목록을 포함합니다.
      */
     public NovelCommentListResponse getNovelComments(String novelId) {
-        NovelCommentListResponse novelCommentList = novelRepository.findNovelCommentListById(novelId);
-        return novelCommentList;
+        return novelRepository.findNovelCommentListById(novelId);
     }
 
     /**
