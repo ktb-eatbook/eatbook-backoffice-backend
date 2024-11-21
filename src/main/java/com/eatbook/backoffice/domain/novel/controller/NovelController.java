@@ -35,7 +35,7 @@ public class NovelController {
      * 성공 코드 {@link NovelSuccessCode#NOVEL_CREATED}를 포함하는 ApiResponse입니다.
      * 이 ApiResponse에는 생성된 소설Id와 커버 이미지용 presigned URL 정보가 포함됩니다.
      */
-    @PostMapping
+    @PostMapping("/novel")
     public ResponseEntity<ApiResponse> createNovel(@Validated @RequestBody NovelRequest novelRequest) {
 
         log.info("Create Novel Request: {}", novelRequest);
