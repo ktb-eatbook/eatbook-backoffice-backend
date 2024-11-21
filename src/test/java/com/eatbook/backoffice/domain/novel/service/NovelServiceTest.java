@@ -200,17 +200,9 @@ class NovelServiceTest {
         NovelDetailResponse result = novelService.getNovelDetail(testId);
 
         // then
-        assertNotNull(result);
-        assertEquals(expectedResponse.id(), result.id());
-        assertEquals(expectedResponse.title(), result.title());
-        assertEquals(expectedResponse.authorList(), result.authorList());
-        assertEquals(expectedResponse.categoryList(), result.categoryList());
-        assertEquals(expectedResponse.coverImageUrl(), result.coverImageUrl());
-        assertEquals(expectedResponse.summary(), result.summary());
-        assertEquals(expectedResponse.isCompleted(), result.isCompleted());
-        assertEquals(expectedResponse.publicationYear(), result.publicationYear());
-        assertEquals(expectedResponse.views(), result.views());
-        assertEquals(expectedResponse.likes(), result.likes());
+        assertThat(result)
+                .usingRecursiveComparison()
+                .isEqualTo(expectedResponse);
     }
 
     @Test
