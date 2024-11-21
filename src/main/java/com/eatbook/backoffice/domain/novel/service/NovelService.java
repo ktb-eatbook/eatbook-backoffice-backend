@@ -128,6 +128,7 @@ public class NovelService {
      * @param novelId 소설 Id
      * @return {@link NovelCommentListResponse} 객체로, 지정된 소설에 대한 댓글 목록을 포함합니다.
      */
+    @Transactional(readOnly = true)
     public NovelCommentListResponse getNovelComments(String novelId) {
         NovelCommentListResponse novelCommentList = novelRepository.findNovelCommentListById(novelId);
         return novelCommentList;
@@ -140,6 +141,7 @@ public class NovelService {
      * @return 지정된 소설에 대한 에피소드 목록이 포함된 {@link NovelEpisodeListResponse} 객체
      *         에피소드가 없으면 빈 목록을 반환합니다.
      */
+    @Transactional(readOnly = true)
     public NovelEpisodeListResponse getNovelEpisodes(String novelId) {
         NovelEpisodeListResponse novelEpisodeList = novelRepository.findNovelEpisodeListById(novelId);
         return novelEpisodeList;
