@@ -1,8 +1,6 @@
 package com.eatbook.backoffice.domain.novel.repository.queryDSL;
 
-import com.eatbook.backoffice.domain.novel.dto.CommentInfo;
-import com.eatbook.backoffice.domain.novel.dto.NovelCommentListResponse;
-import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
+import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
 import com.eatbook.backoffice.entity.Novel;
 import com.querydsl.core.types.Projections;
@@ -92,14 +90,32 @@ public class NovelCustomRepositoryImpl implements NovelCustomRepository {
         return NovelCommentListResponse.of(novelId, comments);
     }
 
+    @Override
+    public NovelEpisodeListResponse findNovelEpisodeListById(String novelId) {
+        validateNovelExistence(novelId);
+
+        List<EpisodeInfo> episodes = jpaQueryFactory
+                .select(Projections.constructor(EpisodeInfo.class,
+                        episode.id,
+                        episode.chapterNumber,
+                        episode.title
+                ))
+                .from(episode)
+                .where(episode.novel.id.eq(novelId))
+                .orderBy(episode.chapterNumber.asc())
+                .fetch();
+
+        return NovelEpisodeListResponse.of(novelId, episodes);
+    }
+
     private void validateNovelExistence(String novelId) {
-        Long count = jpaQueryFactory
-                .select(novel.id.count())
+        Boolean exists = jpaQueryFactory
+                .selectOne()
                 .from(novel)
                 .where(novel.id.eq(novelId))
-                .fetchOne();
+                .fetchFirst() != null;
 
-        if (count == null || count == 0) {
+        if (!exists) {
             throw new NovelNotFoundException(NOVEL_NOT_FOUND);
         }
     }

@@ -1,6 +1,7 @@
 package com.eatbook.backoffice.domain.novel.fixture;
 
 import com.eatbook.backoffice.domain.novel.dto.CommentInfo;
+import com.eatbook.backoffice.domain.novel.dto.EpisodeInfo;
 import com.eatbook.backoffice.domain.novel.dto.NovelDetailResponse;
 import com.eatbook.backoffice.domain.novel.dto.NovelRequest;
 import com.eatbook.backoffice.entity.Novel;
@@ -108,6 +109,13 @@ public class NovelFixture {
         return List.of(
                 new CommentInfo("comment-1", 1, "Episode 1", "user-1", "User One", "Great episode!", LocalDateTime.now(), LocalDateTime.now()),
                 new CommentInfo("comment-2", 2, "Episode 2", "user-2", "User Two", "Loved it!", LocalDateTime.now(), LocalDateTime.now())
+        );
+    }
+
+    public static List<EpisodeInfo> setUpMockEpisodes() {
+        return List.of(
+                new EpisodeInfo("episode-1", 1, "Episode 1"),
+                new EpisodeInfo("episode-2", 2, "Episode 2")
         );
     }
 }
