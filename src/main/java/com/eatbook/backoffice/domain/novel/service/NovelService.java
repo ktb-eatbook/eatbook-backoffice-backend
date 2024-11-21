@@ -118,8 +118,7 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelDetailResponse getNovelDetail(String novelId) {
-        NovelDetailResponse novelDetail = novelRepository.findNovelDetailById(novelId);
-        return novelDetail;
+        return novelRepository.findNovelDetailById(novelId);
     }
 
     /**
