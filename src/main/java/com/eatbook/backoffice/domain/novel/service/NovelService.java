@@ -118,8 +118,7 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelDetailResponse getNovelDetail(String novelId) {
-        NovelDetailResponse novelDetail = novelRepository.findNovelDetailById(novelId);
-        return novelDetail;
+        return novelRepository.findNovelDetailById(novelId);
     }
 
     /**
@@ -130,8 +129,7 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelCommentListResponse getNovelComments(String novelId) {
-        NovelCommentListResponse novelCommentList = novelRepository.findNovelCommentListById(novelId);
-        return novelCommentList;
+        return novelRepository.findNovelCommentListById(novelId);
     }
 
     /**
@@ -143,8 +141,7 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelEpisodeListResponse getNovelEpisodes(String novelId) {
-        NovelEpisodeListResponse novelEpisodeList = novelRepository.findNovelEpisodeListById(novelId);
-        return novelEpisodeList;
+        return novelRepository.findNovelEpisodeListById(novelId);
     }
 
     /**
