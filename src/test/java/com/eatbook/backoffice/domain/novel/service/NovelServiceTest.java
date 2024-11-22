@@ -3,7 +3,7 @@ package com.eatbook.backoffice.domain.novel.service;
 import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
 import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
-import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
+import com.eatbook.backoffice.global.exception.exceptions.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.Author;
 import com.eatbook.backoffice.entity.Category;

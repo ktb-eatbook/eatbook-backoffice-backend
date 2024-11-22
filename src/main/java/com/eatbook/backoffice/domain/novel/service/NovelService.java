@@ -2,7 +2,7 @@ package com.eatbook.backoffice.domain.novel.service;
 
 import com.eatbook.backoffice.domain.novel.dto.*;
 import com.eatbook.backoffice.domain.novel.exception.NovelAlreadyExistsException;
-import com.eatbook.backoffice.domain.novel.exception.PageOutOfBoundException;
+import com.eatbook.backoffice.global.exception.exceptions.PageOutOfBoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.*;
 import com.eatbook.backoffice.entity.constant.ContentType;
@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
-import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.PAGE_OUT_OF_BOUNDS;
 import static com.eatbook.backoffice.entity.constant.ContentType.JPEG;
+import static com.eatbook.backoffice.global.response.GlobalErrorCode.PAGE_OUT_OF_BOUNDS;
 import static com.eatbook.backoffice.global.utils.PathGenerator.generateRelativePath;
 import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
 
