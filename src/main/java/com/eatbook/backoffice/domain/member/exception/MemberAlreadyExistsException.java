@@ -7,5 +7,4 @@ public class MemberAlreadyExistsException extends BusinessException {
     public MemberAlreadyExistsException(StatusCode code) {
         super(code);
     }
-
 }
