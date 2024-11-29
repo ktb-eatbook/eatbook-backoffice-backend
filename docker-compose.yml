@@ -6,18 +6,5 @@ services:
     container_name: spring-app
     ports:
       - "8090:8090"
-    environment:
-      PROFILE: "${PROFILE}"
-      SERVER_PORT: "${SERVER_PORT}"
-      DB_DOMAIN: "${DB_DOMAIN}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USERNAME: "${DB_USERNAME}"
-      DB_PASSWORD: "${DB_PASSWORD}"
-      BUCKET_NAME: "${BUCKET_NAME}"
-      EPISODE_DIRECTORY: "${EPISODE_DIRECTORY}"
-      SCRIPT_DIRECTORY: "${SCRIPT_DIRECTORY}"
-      REGION: "${REGION}"
-      ACCESS_KEY: "${ACCESS_KEY}"
-      SECRET_KEY: "${SECRET_KEY}"
-      PRESIGNED_URL_EXPIRATION: "${PRESIGNED_URL_EXPIRATION}"
+    env_file:
+      - ./src/main/resources/.env
