@@ -114,5 +114,5 @@ src/main/resources/application.yml
 /src/main/resources/migration/
 
 # Ignore IntelliJ's build directories
-out/
+out/ 
 
