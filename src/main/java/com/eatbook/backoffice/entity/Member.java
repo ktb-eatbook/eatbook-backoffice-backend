@@ -1,6 +1,9 @@
 package com.eatbook.backoffice.entity;
 
 import com.eatbook.backoffice.entity.base.SoftDeletableEntity;
+import com.eatbook.backoffice.entity.constant.AgeGroup;
+import com.eatbook.backoffice.entity.constant.AgeGroupConverter;
+import com.eatbook.backoffice.entity.constant.Gender;
 import com.eatbook.backoffice.entity.constant.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -43,6 +46,16 @@ public class Member extends SoftDeletableEntity {
     @Column
     private String email;
 
+    @NotNull
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @NotNull
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Convert(converter = AgeGroupConverter.class)
+    private AgeGroup ageGroup;
+
     @Column
     private String profileImageUrl;
 
@@ -50,12 +63,14 @@ public class Member extends SoftDeletableEntity {
     private List<Bookmark> bookmarks = new ArrayList<>();
 
     @Builder
-    public Member(LocalDateTime lastLogin, Role role, String nickname, String passwordHash, String email, String profileImageUrl) {
+    public Member(LocalDateTime lastLogin, Role role, String nickname, String passwordHash, String email, Gender gender, AgeGroup ageGroup, String profileImageUrl) {
         this.lastLogin = lastLogin;
         this.role = role;
         this.nickname = nickname;
         this.passwordHash = passwordHash;
         this.email = email;
+        this.gender = gender;
+        this.ageGroup = ageGroup;
         this.profileImageUrl = profileImageUrl;
     }
 

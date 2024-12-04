@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.naming.AuthenticationException;
@@ -89,6 +90,23 @@ public class GlobalExceptionHandler {
         log.error("[Business Exception] {}", e.getErrorCode(), e.getMessage());
 
         ApiResponse response = ApiResponse.of(e.getErrorCode());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    /**
+     * {@link HandlerMethodValidationException} 예외를 처리하는 메서드입니다.
+     * 해당 예외는 메서드 인자에 대한 유효성 검증 오류가 발생했을 때 던져집니다.
+     *
+     * @param e {@link HandlerMethodValidationException} 예외 객체
+     * @return {@link ResponseEntity} 400 BAD_REQUEST 상태 코드와 함께 유효성 검사 오류에 대한 응답을 반환
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    protected ResponseEntity<ApiResponse> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
+        log.error("[Validation Error] {}", e.getMessage(), e);
+
+        ApiResponse response = ApiResponse.of(VALIDATION_ERROR);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(response);
