@@ -2,6 +2,9 @@ package com.eatbook.backoffice.domain.member.service;
 
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
 import com.eatbook.backoffice.domain.member.repository.MemberRepository;
+import com.eatbook.backoffice.entity.constant.Role;
+import com.eatbook.backoffice.entity.constant.SortDirection;
+import com.eatbook.backoffice.entity.constant.SortField;
 import com.eatbook.backoffice.global.exception.exceptions.PageOutOfBoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +39,11 @@ public class MemberService {
      * @throws PageOutOfBoundException 요청한 페이지 번호가 전체 페이지 수를 초과할 경우 발생
      */
     @Transactional(readOnly = true)
-    public MemberListResponse getMemberList(int page, int size, String sortField, String sortDirection) {
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
-        Sort sort = Sort.by(direction, sortField);
+    public MemberListResponse getMemberList(int page, int size, Role role, SortField sortField, SortDirection sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection.name()), sortField.name());
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
-        MemberListResponse members = memberRepository.findMembers(pageable);
+        MemberListResponse members = memberRepository.findMembers(pageable, role);
 
         validatePageRequest(pageable, members.totalElements());
 

@@ -2,6 +2,7 @@ package com.eatbook.backoffice.domain.member.repository.queryDSL;
 
 import com.eatbook.backoffice.domain.member.dto.MemberInfo;
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
+import com.eatbook.backoffice.entity.constant.Role;
 import com.eatbook.backoffice.entity.constant.SortField;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -24,7 +25,7 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public MemberListResponse findMembers(Pageable pageable) {
+    public MemberListResponse findMembers(Pageable pageable, Role role) {
 
         OrderSpecifier<?> orderSpecifier = toOrderSpecifier(pageable.getSort());
 
@@ -40,6 +41,7 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
                         member.deletedAt
                 ))
                 .from(member)
+                .where(role == null ? null : member.role.eq(role))
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -48,6 +50,9 @@ public class MemberCustomRepositoryImpl implements MemberCustomRepository {
         long totalElements = jpaQueryFactory
                 .select(member.count())
                 .from(member)
+                .where(
+                        role == null ? null : member.role.eq(role)
+                )
                 .fetchOne();
 
         Page<MemberInfo> page = new PageImpl<>(memberInfoList, pageable, totalElements);

@@ -2,6 +2,9 @@ package com.eatbook.backoffice.domain.member.controller;
 
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
 import com.eatbook.backoffice.domain.member.service.MemberService;
+import com.eatbook.backoffice.entity.constant.Role;
+import com.eatbook.backoffice.entity.constant.SortDirection;
+import com.eatbook.backoffice.entity.constant.SortField;
 import com.eatbook.backoffice.global.response.ApiResponse;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +37,10 @@ public class MemberController {
     @GetMapping("/members")
     public ResponseEntity<ApiResponse> getMemberList(@RequestParam(name = "page") @Min(1) final int page,
                                                      @RequestParam(name = "size") @Min(1) final int size,
-                                                     @RequestParam(name = "sortField", defaultValue = "id") final String sortField,
-                                                     @RequestParam(name = "sortDirection", defaultValue = "asc") final String sortDirection) {
-        MemberListResponse memberList = memberService.getMemberList(page, size, sortField, sortDirection);
+                                                     @RequestParam(name = "role", required = false) final Role role,
+                                                     @RequestParam(name = "sortField", defaultValue = "ID") final SortField sortField,
+                                                     @RequestParam(name = "sortDirection", defaultValue = "ASC") final SortDirection sortDirection) {
+        MemberListResponse memberList = memberService.getMemberList(page, size, role, sortField, sortDirection);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(GET_MEMBER_LIST, memberList));
