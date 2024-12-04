@@ -4,6 +4,9 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.eatbook.backoffice.entity.QMember.member;
 
@@ -21,11 +24,18 @@ public enum SortField {
         this.expression = expression;
     }
 
+    private static final Map<String, SortField> FIELD_MAP =
+            Arrays.stream(values())
+                    .collect(Collectors.toMap(
+                            field -> field.fieldName.toLowerCase(),
+                            Function.identity()
+                    ));
+
     public static SortField from(String fieldName) {
-        return Arrays.stream(values())
-                .filter(field -> field.fieldName.equalsIgnoreCase(fieldName))
-                .findFirst()
-                .orElse(ID);
+        return FIELD_MAP.getOrDefault(
+                fieldName != null ? fieldName.toLowerCase() : null,
+                ID
+        );
     }
 
     public OrderSpecifier<?> getOrderSpecifier(boolean isDesc) {
