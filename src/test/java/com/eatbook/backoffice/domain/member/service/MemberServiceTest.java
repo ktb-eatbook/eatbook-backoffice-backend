@@ -17,7 +17,7 @@ import java.util.List;
 
 import static com.eatbook.backoffice.domain.member.fixture.MemberFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,23 +28,22 @@ class MemberServiceTest {
 
     @InjectMocks
     private MemberService memberService;
-
     @Test
     void should_ReturnMemberList_When_ValidParametersProvided() {
         // Given
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(defaultSortField).ascending());
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(defaultSortDirection.name().equals("ASC")
+                ? Sort.Direction.ASC : Sort.Direction.DESC, defaultSortField.name()));
 
         List<MemberInfo> sampleMembers = createSampleMembers();
         MemberListResponse mockResponse = createMemberListResponse(page, size, sampleMembers);
 
-        when(memberRepository.findMembers(pageable)).thenReturn(mockResponse);
+        when(memberRepository.findMembers(pageable, role)).thenReturn(mockResponse);
 
         // When
-        MemberListResponse result = memberService.getMemberList(page, size, defaultSortField, defaultSortDirection);
+        MemberListResponse result = memberService.getMemberList(page, size, role, defaultSortField, defaultSortDirection);
 
         // Then
-        assertThat(result).usingRecursiveComparison()
-                .isEqualTo(mockResponse);
+        assertThat(result).usingRecursiveComparison().isEqualTo(mockResponse);
     }
 
     @Test
@@ -53,10 +52,11 @@ class MemberServiceTest {
         List<MemberInfo> sampleMembers = createSampleMembers();
         MemberListResponse mockResponse = createMemberListResponse(page, size, sampleMembers);
 
-        when(memberRepository.findMembers(org.mockito.ArgumentMatchers.any())).thenReturn(mockResponse);
+        when(memberRepository.findMembers(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq(role)))
+                .thenReturn(mockResponse);
 
         // When & Then
-        assertThatThrownBy(() -> memberService.getMemberList(invalidPage, size, defaultSortField, defaultSortDirection))
+        assertThatThrownBy(() -> memberService.getMemberList(invalidPage, size, role, defaultSortField, defaultSortDirection))
                 .isInstanceOf(PageOutOfBoundException.class)
                 .hasMessage("요청된 페이지가 총 페이지 수를 초과했습니다.");
     }

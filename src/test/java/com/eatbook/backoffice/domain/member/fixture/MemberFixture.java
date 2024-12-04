@@ -2,6 +2,9 @@ package com.eatbook.backoffice.domain.member.fixture;
 
 import com.eatbook.backoffice.domain.member.dto.MemberInfo;
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
+import com.eatbook.backoffice.entity.constant.Role;
+import com.eatbook.backoffice.entity.constant.SortDirection;
+import com.eatbook.backoffice.entity.constant.SortField;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,9 +13,10 @@ public class MemberFixture {
 
     public static int page = 1;
     public static int size = 10;
+    public static Role role = Role.MEMBER;
     public static int invalidPage = 10000;
-    public static String defaultSortField = "id";
-    public static String defaultSortDirection = "asc";
+    public static SortField defaultSortField = SortField.ID;
+    public static SortDirection defaultSortDirection = SortDirection.ASC;
 
 
 
