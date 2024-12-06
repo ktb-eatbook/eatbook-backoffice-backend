@@ -3,6 +3,7 @@ package com.eatbook.backoffice.entity.constant;
 import java.util.Arrays;
 
 public enum AgeGroup {
+    TEENS(10),
     TWENTIES(20),
     THIRTIES(30),
     FORTIES(40),
