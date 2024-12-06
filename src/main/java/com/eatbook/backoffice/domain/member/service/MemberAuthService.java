@@ -69,7 +69,7 @@ public class MemberAuthService {
                 .nickname(dto.nickName())
                 .email(dto.email())
                 .ageGroup(AgeGroup.valueOf(dto.ageGroup()))
-                .role(Role.MEMBER)
+                .role(Role.PENDING_ADMIN)
                 .gender(Gender.valueOf(dto.gender()))
                 .profileImageUrl(profileImageUrl)
                 .build();
