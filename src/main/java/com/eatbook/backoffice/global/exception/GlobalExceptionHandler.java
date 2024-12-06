@@ -2,6 +2,7 @@ package com.eatbook.backoffice.global.exception;
 
 import com.eatbook.backoffice.global.exception.exceptions.BusinessException;
 import com.eatbook.backoffice.global.response.ApiResponse;
+import com.eatbook.backoffice.security.error.exception.JwtTokenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

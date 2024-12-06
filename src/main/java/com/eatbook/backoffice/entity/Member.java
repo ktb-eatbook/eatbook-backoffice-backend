@@ -87,4 +87,7 @@ public class Member extends SoftDeletableEntity {
         return Objects.hash(id);
     }
 
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
 }

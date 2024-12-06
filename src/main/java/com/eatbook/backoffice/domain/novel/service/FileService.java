@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -15,6 +17,7 @@ import java.time.Duration;
 
 import static com.amazonaws.services.s3.internal.BucketNameUtils.validateBucketName;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.S3_PRE_SIGNED_URL_GENERATION_FAILED;
+import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
 
 /**
  * S3 버킷의 파일을 관리하기 위한 서비스입니다.
@@ -24,6 +27,8 @@ import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.S3_PRE
 @RequiredArgsConstructor
 @Slf4j
 public class FileService {
+    private final S3Client s3Client;
+
     private final S3Presigner s3Presigner;
     
     @Value("${cloud.aws.s3.bucket}")
@@ -52,6 +57,28 @@ public class FileService {
         }
 
         return presignedPutObjectRequest.url().toString();
+    }
+    /**
+     * 지정된 S3 버킷에 프로필 이미지를 업로드합니다.
+     *
+     * @param objectKey   S3 버킷에 저장될 객체의 키
+     * @param fileBytes   업로드할 파일의 바이트 배열
+     * @param contentType 파일의 MIME 유형
+     * @return 업로드된 파일의 URL
+     */
+    public String uploadProfileImage(String objectKey, byte[] fileBytes, ContentType contentType) {
+        try {
+            validateBucketName(bucketName);
+
+            PutObjectRequest putObjectRequest = createPutObjectRequest(objectKey, contentType.getMimeType());
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes));
+            String profileImageUrl = getFilePath(bucketName, objectKey);
+            return profileImageUrl;
+        } catch (Exception e) {
+            log.error("S3 파일 업로드 실패: {}", e.getMessage());
+            throw new RuntimeException("S3 파일 업로드 실패", e);
+        }
     }
 
     /**

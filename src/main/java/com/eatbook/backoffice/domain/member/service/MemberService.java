@@ -1,6 +1,7 @@
 package com.eatbook.backoffice.domain.member.service;
 
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
+import com.eatbook.backoffice.domain.member.exception.InvalidRoleException;
 import com.eatbook.backoffice.domain.member.repository.MemberRepository;
 import com.eatbook.backoffice.entity.constant.Role;
 import com.eatbook.backoffice.entity.constant.SortDirection;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.INVALID_ROLE;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.PAGE_OUT_OF_BOUNDS;
 
 /**
@@ -48,6 +50,38 @@ public class MemberService {
         validatePageRequest(pageable, members.totalElements());
 
         return members;
+    }
+
+    /**
+     * 멤버의 역할을 업데이트합니다.
+     * 이 메서드는 관리자 권한을 가진 멤버만 호출할 수 있으며,
+     * 요청된 멤버 ID에 해당하는 멤버의 역할을 새로운 역할로 업데이트합니다.
+     *
+     * @param memberId 역할을 업데이트할 멤버 ID
+     * @param role 새로운 역할 (ADMIN, USER)
+     * @throws InvalidRoleException 요청된 역할이 유효하지 않은 경우
+     */
+    @Transactional
+    public void updateMemberRole(String memberId, String role) {
+        Role newRole = validateRole(role);
+
+        memberRepository.updateMemberRole(memberId, newRole);
+    }
+
+    /**
+     * 주어진 역할 문자열을 검증하고, 해당하는 {@link Role} 열거형 값을 반환합니다.
+     * 역할 문자열이 유효한 열거형 값이 아니면 {@link InvalidRoleException}이 발생합니다.
+     *
+     * @param role 검증할 역할 문자열.
+     * @return 해당하는 {@link Role} 열거형 값.
+     * @throws InvalidRoleException 역할 문자열이 유효한 열거형 값이 아닌 경우.
+     */
+    private Role validateRole(String role) {
+        try {
+            return Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidRoleException(INVALID_ROLE);
+        }
     }
 
     /**
