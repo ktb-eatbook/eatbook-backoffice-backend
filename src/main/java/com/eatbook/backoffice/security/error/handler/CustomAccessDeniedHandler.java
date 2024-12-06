@@ -1,6 +1,7 @@
 package com.eatbook.backoffice.security.error.handler;
 
 import com.eatbook.backoffice.global.response.ApiResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,20 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException, ServletException {
 
+        String jsonLog = getJsonLog(request, accessDeniedException);
+        log.error(jsonLog);
+
+        ApiResponse apiResponse = ApiResponse.of(INVALID_ROLE);
+
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        String jsonResponse = objectMapper.writeValueAsString(apiResponse);
+        response.getWriter().write(jsonResponse);
+    }
+
+    private String getJsonLog(HttpServletRequest request, AccessDeniedException accessDeniedException) throws JsonProcessingException {
         String method = request.getMethod();
         String requestURI = request.getRequestURI();
         String queryString = request.getQueryString();
@@ -51,16 +66,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         logData.put("error", accessDeniedException.getMessage());
 
         String jsonLog = objectMapper.writeValueAsString(logData);
-        log.error(jsonLog);
-
-        ApiResponse apiResponse = ApiResponse.of(INVALID_ROLE);
-
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-
-        String jsonResponse = objectMapper.writeValueAsString(apiResponse);
-        response.getWriter().write(jsonResponse);
+        return jsonLog;
     }
 
     /**
