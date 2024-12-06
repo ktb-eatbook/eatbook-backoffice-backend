@@ -34,6 +34,13 @@ import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.MEMB
 import static com.eatbook.backoffice.entity.constant.ContentType.JPEG;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.*;
 
+/**
+ * 이 클래스는 회원 인증과 관련된 서비스를 제공하며, 가입 및 로그인과 같은 기능을 수행합니다.
+ * 멤버 저장소, 파일 서비스, JWT 토큰 공급자, 비밀번호 인코더와 상호 작용합니다.
+ *
+ * @author lavin
+ * @since 1.0.0
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -47,6 +54,13 @@ public class MemberAuthService {
 
     private static final String PROFILE_IMAGE_PATH = "profile-images/";
 
+    /**
+     * 제공된 가입 요청과 프로필 이미지를 사용하여 새로운 멤버를 등록합니다.
+     *
+     * @param dto 가입 요청 정보를 포함하는 DTO.
+     * @param profileImage 업로드할 프로필 이미지 파일.
+     * @throws MemberAuthenticationException 이메일이 이미 데이터베이스에 존재할 경우 발생.
+     */
     @Transactional
     public void signUp(SignUpRequest dto, MultipartFile profileImage) throws MemberAuthenticationException {
         validateEmailDuplication(dto.email());
@@ -76,6 +90,13 @@ public class MemberAuthService {
         memberRepository.save(newUser);
     }
 
+    /**
+     * 로그인 요청을 처리하고, 유효한 경우 JWT 토큰을 발행합니다.
+     *
+     * @param dto 로그인 요청 정보를 포함하는 DTO.
+     * @return 로그인 성공 시 로그인 응답 DTO.
+     * @throws AuthenticationException 인증 실패 시 발생.
+     */
     @Transactional
     public LoginResponse login(LoginRequest dto) throws AuthenticationException {
         Member member = memberRepository.findMemberByEmail(dto.email())
@@ -101,23 +122,47 @@ public class MemberAuthService {
         return LoginResponse.of(accessToken, refreshToken, Role.valueOf(role));
     }
 
+    /**
+     * 이메일 중복을 확인합니다.
+     *
+     * @param email 확인할 이메일.
+     * @throws MemberAuthenticationException 이메일이 이미 존재할 경우 발생.
+     */
     private void validateEmailDuplication(String email) {
         if (memberRepository.existsByEmail(email)) {
             throw new MemberAuthenticationException(MEMBER_ALREADY_EXISTS);
         }
     }
 
+    /**
+     * JWT 토큰을 생성합니다.
+     *
+     * @param userId 사용자 ID.
+     * @param role 사용자 역할.
+     * @return 생성된 JWT 토큰.
+     */
     private String createAccessToken(String userId, String role) {
         Map<String, String> claims = Map.of("id", userId, "role", role);
         JwtAuthToken jwtAuthToken = tokenProvider.createAuthToken(userId, role, claims);
         return jwtAuthToken.getToken();
     }
 
+    /**
+     * JWT 갱신 토큰을 생성합니다.
+     *
+     * @param userId 사용자 ID.
+     * @return 생성된 JWT 갱신 토큰.
+     */
     private String createRefreshToken(String userId) {
         JwtAuthToken jwtAuthToken = tokenProvider.createRefreshToken(userId);
         return jwtAuthToken.getToken();
     }
 
+    /**
+     * 멤버의 마지막 로그인 시간을 업데이트합니다.
+     *
+     * @param member 업데이트할 멤버.
+     */
     protected void updateLastLogin(Member member) {
         member.setLastLogin(LocalDateTime.now());
         memberRepository.save(member);
