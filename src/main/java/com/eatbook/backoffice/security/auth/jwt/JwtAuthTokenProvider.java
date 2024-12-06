@@ -69,16 +69,16 @@ public class JwtAuthTokenProvider implements AuthTokenProvider<JwtAuthToken> {
 
     @Override
     public Authentication getAuthentication(JwtAuthToken authToken) {
-        if (authToken.validate()) {
-            Claims claims = authToken.getData();
-            Collection<? extends GrantedAuthority> authorities = Collections.singleton(
-                    new SimpleGrantedAuthority(claims.get(JwtAuthToken.AUTHORITIES_KEY, String.class))
-            );
-            User principal = new User(claims.getSubject(), "", authorities);
-            return new UsernamePasswordAuthenticationToken(principal, authToken, authorities);
-        } else {
+        if (!authToken.validate()) {
             throw new JwtException("JWT 토큰이 적절하지 않습니다.");
         }
+
+        Claims claims = authToken.getData();
+        Collection<? extends GrantedAuthority> authorities = Collections.singleton(
+                new SimpleGrantedAuthority(claims.get(JwtAuthToken.AUTHORITIES_KEY, String.class))
+        );
+        User principal = new User(claims.getSubject(), "", authorities);
+        return new UsernamePasswordAuthenticationToken(principal, authToken, authorities);
     }
 
     public JwtAuthToken createRefreshToken(String id) {
