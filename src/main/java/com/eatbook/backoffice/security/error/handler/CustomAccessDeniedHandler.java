@@ -75,16 +75,17 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     private Map<String, String> extractHeaders(HttpServletRequest request) {
         Map<String, String> headers = new HashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
-        if (headerNames != null) {
-            while(headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                if ("Authorization".equalsIgnoreCase(headerName)) {
-                    headers.put(headerName, "REDACTED");
-                } else {
-                    String headerValue = request.getHeader(headerName);
-                    headers.put(headerName, headerValue);
-                }
-            }
+
+        if (headerNames == null) {
+            return headers; // 헤더가 없으면 빈 Map 반환
+        }
+
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = "Authorization".equalsIgnoreCase(headerName)
+                    ? "REDACTED"
+                    : request.getHeader(headerName);
+            headers.put(headerName, headerValue);
         }
         return headers;
     }
