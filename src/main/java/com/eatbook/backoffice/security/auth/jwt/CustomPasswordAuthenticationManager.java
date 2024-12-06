@@ -11,7 +11,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.NOT_EXIST_USER;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.USER_PASSWORD_NOT_MATCHED;
@@ -23,11 +22,11 @@ public class CustomPasswordAuthenticationManager implements AuthenticationProvid
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Optional<Member> optionalUser = memberRepository.findById(authentication.getPrincipal().toString());
-        if (optionalUser.isEmpty()) {
-            throw new BadCredentialsException(NOT_EXIST_USER.getMessage());
-        }
-        Member member = optionalUser.get();
+        String principal = (String) authentication.getPrincipal();
+
+        Member member = memberRepository.findById(principal)
+                .orElseThrow(() -> new BadCredentialsException(NOT_EXIST_USER.getMessage()));
+
         if (!authentication.getCredentials().equals(member.getPasswordHash())) {
             throw new BadCredentialsException(USER_PASSWORD_NOT_MATCHED.getMessage());
         }
