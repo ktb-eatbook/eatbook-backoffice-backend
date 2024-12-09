@@ -4,6 +4,7 @@ import com.eatbook.backoffice.entity.Episode;
 import com.eatbook.backoffice.entity.FileMetadata;
 import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.constant.ReleaseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Field;
 
@@ -17,7 +18,7 @@ public class EpisodeFixture {
     public static final String novelTitle = "Title";
     public static final String summary = "Valid Episode Summary";
     public static final int publicationYear = 1800;
-    public static final ReleaseStatus releaseStatus = ReleaseStatus.PUBLIC;
+    public static final MultipartFile file = null;
 
     // 헬퍼 메서드: FileMetadata ID 설정
     public static FileMetadata createFileMetadataWithId(String id) {
