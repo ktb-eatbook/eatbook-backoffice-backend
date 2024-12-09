@@ -16,13 +16,17 @@ public class CookieService {
      */
     public void addCookie(HttpServletResponse response, String name, String value) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
+        cookie.setHttpOnly(true); // 자바스크립트 접근 불가
         cookie.setSecure(true); // HTTPS 환경에서만 사용
-        cookie.setPath("/");
-        cookie.setMaxAge(refreshTokenExpiration);
-        response.addCookie(cookie);
-    }
+        cookie.setPath("/"); // 모든 경로에서 사용 가능
+        cookie.setMaxAge(refreshTokenExpiration); // 만료 시간 설정
+        response.setHeader("Set-Cookie",
+                name + "=" + value +
+                        "; HttpOnly; Secure; Path=/; SameSite=None"
+        );
 
+        response.addCookie(cookie); // 쿠키 추가
+    }
     /**
      * 쿠키를 삭제합니다.
      */
