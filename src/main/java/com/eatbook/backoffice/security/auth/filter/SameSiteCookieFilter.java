@@ -16,7 +16,6 @@ public class SameSiteCookieFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         filterChain.doFilter(request, response);
-
         boolean isSecureRequest = request.isSecure();
 
         response.getHeaders("Set-Cookie").forEach(cookie -> {
