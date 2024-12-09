@@ -16,12 +16,22 @@ public class SameSiteCookieFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         filterChain.doFilter(request, response);
+        boolean isSecureRequest = request.isSecure();
 
-        if (response.containsHeader("Set-Cookie")) {
-            String header = response.getHeader("Set-Cookie");
-            if (header != null && !header.contains("SameSite")) {
-                response.setHeader("Set-Cookie", header + "; SameSite=None; Secure");
+        response.getHeaders("Set-Cookie").forEach(cookie -> {
+            if (!cookie.contains("SameSite") || (isSecureRequest && !cookie.contains("Secure"))) {
+                StringBuilder updatedCookie = new StringBuilder(cookie);
+
+                if (!cookie.contains("SameSite")) {
+                    updatedCookie.append("; SameSite=None");
+                }
+
+                if (isSecureRequest && !cookie.contains("Secure")) {
+                    updatedCookie.append("; Secure");
+                }
+
+                response.setHeader("Set-Cookie", updatedCookie.toString());
             }
-        }
+        });
     }
 }

@@ -86,28 +86,7 @@ public class NovelService {
     public NovelListResponse getNovelList(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<String> novelIds = novelRepository.findNovelIds(pageable);
-        List<Novel> allByIdsWithAuthorsAndCategories =
-                novelRepository.findAllByIdsWithAuthorsAndCategories(novelIds.getContent());
-
-        if (page > novelIds.getTotalPages() + 1) {
-            throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
-        }
-
-        List<NovelInfo> novelInfoList = allByIdsWithAuthorsAndCategories.stream()
-                .map(novel -> NovelInfo.of(
-                        novel.getId(),
-                        novel.getTitle(),
-                        getAuthorNames(novel),
-                        getCategoryNames(novel),
-                        novel.getCoverImageUrl()))
-                .collect(Collectors.toList());
-
-        return NovelListResponse.of(
-                (int) novelIds.getTotalElements(),
-                novelIds.getTotalPages(),
-                novelIds.getNumber() + 1,
-                novelIds.getSize(),
-                novelInfoList);
+        return getNovelListResponse(page, novelIds);
     }
 
     /**
@@ -142,6 +121,58 @@ public class NovelService {
     @Transactional(readOnly = true)
     public NovelEpisodeListResponse getNovelEpisodes(String novelId) {
         return novelRepository.findNovelEpisodeListById(novelId);
+    }
+
+    /**
+     * 지정된 검색어로 소설을 검색하고, 페이지네이션된 결과를 반환합니다.
+     *
+     * @param query 검색할 키워드
+     * @param page 페이지 번호 (1-indexed)
+     * @param size 페이지 당 소설 수
+     * @return {@link NovelListResponse} 객체로, 검색된 소설 목록과 메타데이터를 포함합니다.
+     *         검색 결과가 없거나, 페이지 번호가 범위를 초과할 경우, 빈 목록과 메타데이터를 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    public NovelListResponse searchNovels(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<String> novelIdsPage = novelRepository.findNovelIdsByQuery(query, pageable);
+
+        return getNovelListResponse(page, novelIdsPage);
+    }
+
+    /**
+     * 지정된 페이지와 크기에 따라 소설 목록과 관련 메타데이터를 가져옵니다.
+     *
+     * @param page 페이지 번호 (1-indexed)
+     * @param novelIdsPage 소설 ID로 페이징된 결과
+     * @return {@link NovelListResponse} 객체로, 소설 목록과 메타데이터를 포함합니다.
+     * @throws PageOutOfBoundException 페이지 번호가 범위를 초과할 경우 발생
+     */
+    private NovelListResponse getNovelListResponse(int page, Page<String> novelIdsPage) {
+        // 소설 ID를 사용하여 소설, 저자, 카테고리를 함께 가져옵니다.
+        List<Novel> novels = novelRepository.findAllByIdsWithAuthorsAndCategories(novelIdsPage.getContent());
+
+        // 요청한 페이지가 존재하지 않는 경우 예외를 발생시킵니다.
+        if (page > novelIdsPage.getTotalPages() + 1) {
+            throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
+        }
+
+        List<NovelInfo> novelInfoList = novels.stream()
+                .map(novel -> NovelInfo.of(
+                        novel.getId(),
+                        novel.getTitle(),
+                        getAuthorNames(novel),
+                        getCategoryNames(novel),
+                        novel.getCoverImageUrl()))
+                .collect(Collectors.toList());
+
+        return NovelListResponse.of(
+                (int) novelIdsPage.getTotalElements(),
+                novelIdsPage.getTotalPages(),
+                novelIdsPage.getNumber() + 1,
+                novelIdsPage.getSize(),
+                novelInfoList);
     }
 
     /**

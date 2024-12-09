@@ -1,5 +1,6 @@
 package com.eatbook.backoffice.domain.episode.controller;
 
+import com.eatbook.backoffice.domain.episode.dto.EpisodeDetailResponse;
 import com.eatbook.backoffice.domain.episode.dto.EpisodeRequest;
 import com.eatbook.backoffice.domain.episode.dto.EpisodeResponse;
 import com.eatbook.backoffice.domain.episode.response.EpisodeSuccessCode;
@@ -10,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.eatbook.backoffice.domain.episode.response.EpisodeSuccessCode.EPISODE_CREATED;
 
@@ -49,4 +47,23 @@ public class EpisodeController {
                 .body(ApiResponse.of(EPISODE_CREATED, response));
     }
 
+    /**
+     * 에피소드 상세 정보를 조회합니다.
+     *
+     * @param episodeId 조회할 에피소드의 ID입니다.
+     * @return {@link HttpStatus#OK} 상태 코드를 갖는 ResponseEntity와
+     *         성공 코드 {@link EpisodeSuccessCode#EPISODE_FETCHED}를 포함하는 ApiResponse입니다.
+     *         이 ApiResponse에는 조회된 에피소드의 상세 정보가 포함됩니다.
+     */
+    @GetMapping("/{episodeId}")
+    public ResponseEntity<ApiResponse> getEpisodeDetails(@PathVariable String episodeId) {
+
+        log.info("Get Episode Details Request: episodeId={}", episodeId);
+
+        EpisodeDetailResponse response = episodeService.getEpisodeDetails(episodeId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(EpisodeSuccessCode.EPISODE_FETCHED, response));
+    }
 }

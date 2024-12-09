@@ -120,4 +120,25 @@ public class NovelController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(NovelSuccessCode.GET_NOVEL_EPISODE_LIST, novelEpisodes));
     }
+
+    /**
+     * 검색어를 기준으로 소설을 검색하고, 페이징된 결과를 반환합니다.
+     *
+     * @param query 검색어
+     * @param page 페이지 번호 (1부터 시작)
+     * @param size 페이지당 결과 수
+     * @return NovelListResponse - 페이징된 소설 리스트와 메타 데이터
+     */
+    @GetMapping("/novels/search")
+    public ResponseEntity<ApiResponse> searchNovels(
+            @RequestParam("query") String query,
+            @RequestParam(value = "page", defaultValue = "1") @Min(1) final int page,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) final int size) {
+
+        NovelListResponse novelListResponse = novelService.searchNovels(query, page, size);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NovelSuccessCode.SEARCH_NOVELS, novelListResponse));
+    }
 }
