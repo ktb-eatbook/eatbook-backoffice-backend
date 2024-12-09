@@ -100,34 +100,6 @@ public class EpisodeService {
         return new EpisodeResponse(episode.getId(), presignedURL);
     }
 
-
-    /**
-     * 에피소드 ID를 기반으로 상세 정보를 조회합니다.
-     *
-     * @param episodeId 조회할 에피소드의 ID
-     * @return 조회된 에피소드 상세 정보
-     * @throws EpisodeNotFoundException 에피소드가 존재하지 않을 경우 예외 발생
-     */
-    @Transactional(readOnly = true)
-    public EpisodeDetailResponse getEpisodeDetails(String episodeId) {
-        Episode episode = episodeRepository.findById(episodeId)
-                .orElseThrow(() -> new EpisodeNotFoundException(EPISODE_NOT_FOUND));
-
-        return EpisodeDetailResponse.of(
-                episode.getId(),
-                episode.getTitle(),
-                episode.getChapterNumber(),
-                episode.getReleasedDate(),
-                episode.getScheduledReleaseDate(),
-                episode.getReleaseStatus(),
-                episode.getNovel().getId(),
-                episode.getViewCount(),
-                episode.getCreatedAt(),
-                episode.getUpdatedAt()
-        );
-    }
-
-
     /**
      * 에피소드 ID를 기반으로 상세 정보를 조회합니다.
      *
