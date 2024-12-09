@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import static com.eatbook.backoffice.domain.episode.fixture.EpisodeFixture.*;
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_TITLE_DUPLICATED;
+import static com.eatbook.backoffice.entity.constant.ContentType.TXT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class EpisodeServiceTest {
 
-    private static final ContentType EPISODE_CONTENT_TYPE = ContentType.TXT;
+    private static final ContentType EPISODE_CONTENT_TYPE = TXT;
     @Mock
     private EpisodeRepository episodeRepository;
 
@@ -65,7 +66,7 @@ class EpisodeServiceTest {
         when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(fileMetadata);
 
         // When
-        EpisodeResponse episodeResponse = episodeService.createEpisode(episodeRequest);
+        EpisodeResponse episodeResponse = episodeService.createEpisode(episodeRequest, file);
 
         // Then
         assertThat(episodeResponse.episodeId()).isEqualTo(episodeId);
@@ -88,7 +89,7 @@ class EpisodeServiceTest {
 
         // When
         EpisodeAlreadyExistsException exception = assertThrows(EpisodeAlreadyExistsException.class,
-                () -> episodeService.createEpisode(episodeRequest));
+                () -> episodeService.createEpisode(episodeRequest, file));
 
         // Then
         assertThat(exception.getMessage()).contains(EPISODE_TITLE_DUPLICATED.getMessage());

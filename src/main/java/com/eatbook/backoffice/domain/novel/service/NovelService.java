@@ -34,6 +34,7 @@ import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
 public class NovelService {
 
     private static final ContentType COVER_IMAGE_CONTENT_TYPE = JPEG;
+    private static final String NOVEL_DIRECTORY = "novels";
     private static final String COVER_IMAGE_DIRECTORY = "cover";
 
     private final NovelRepository novelRepository;
@@ -43,8 +44,8 @@ public class NovelService {
     private final NovelAuthorRepository novelAuthorRepository;
     private final FileService fileService;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
+    @Value("${cloud.aws.s3.bucket.public}")
+    private String publicBucket;
 
     @Value("${cloud.aws.region.static}")
     private String region;
@@ -66,7 +67,7 @@ public class NovelService {
         linkNovelWithCategories(novel, novelRequest.category());
 
         String presignedUrl = fileService.getPresignUrl(
-                generateRelativePath(COVER_IMAGE_DIRECTORY, novel.getId()),
+                generateRelativePath(NOVEL_DIRECTORY, novel.getId(), COVER_IMAGE_DIRECTORY, novel.getId()),
                 COVER_IMAGE_CONTENT_TYPE);
 
         return new NovelResponse(novel.getId(), presignedUrl);
@@ -202,7 +203,7 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = getFilePath(bucketName, region, COVER_IMAGE_DIRECTORY, newNovel.getId());
+        String coverImageUrl = getFilePath(publicBucket, region, COVER_IMAGE_DIRECTORY, newNovel.getId());
         newNovel.setCoverImageUrl(coverImageUrl);
         newNovel = novelRepository.save(newNovel);
 

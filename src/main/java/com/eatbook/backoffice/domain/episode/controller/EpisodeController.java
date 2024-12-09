@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.eatbook.backoffice.domain.episode.response.EpisodeSuccessCode.EPISODE_CREATED;
 
@@ -36,11 +37,13 @@ public class EpisodeController {
      *         이 ApiResponse에는 생성된 에피소드Id와 텍스트파일이 업로드될 presigned URL 정보가 포함됩니다.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse> createEpisode(@Validated @RequestBody EpisodeRequest episodeRequest) {
+    public ResponseEntity<ApiResponse> createEpisode(
+            @Validated @RequestPart("episodeRequest") EpisodeRequest episodeRequest,
+            @RequestPart("file") MultipartFile file) {
 
         log.info("Create Episode Request: {}", episodeRequest);
 
-        EpisodeResponse response = episodeService.createEpisode(episodeRequest);
+        EpisodeResponse response = episodeService.createEpisode(episodeRequest, file);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

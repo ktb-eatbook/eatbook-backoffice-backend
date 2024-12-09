@@ -20,12 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_NOT_FOUND;
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_TITLE_DUPLICATED;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_NOT_FOUND;
+import static com.eatbook.backoffice.entity.constant.ContentType.TXT;
 import static com.eatbook.backoffice.entity.constant.FileType.SCRIPT;
 import static com.eatbook.backoffice.global.utils.PathGenerator.generateRelativePath;
 import static com.eatbook.backoffice.global.utils.PathGenerator.getFilePath;
@@ -44,7 +46,7 @@ public class EpisodeService {
     private final FileMetadataRepository fileMetadataRepository;
     private final FileService fileService;
 
-    private static final ContentType EPISODE_CONTENT_TYPE = ContentType.TXT;
+    private static final ContentType EPISODE_CONTENT_TYPE = TXT;
 
     /**
      * AWS S3 에피소드 디렉토리.
@@ -58,34 +60,45 @@ public class EpisodeService {
     @Value("${cloud.aws.s3.directory.script}")
     private String scriptDirectory;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
+    @Value("${cloud.aws.s3.bucket.private}")
+    private String privateBucket;
+
+    @Value("${cloud.aws.s3.bucket.public}")
+    private String publicBucket;
 
     @Value("${cloud.aws.region.static}")
     private String region;
 
+
     /**
-     * 에피소드를 생성하고, 에피소드 URL을 반환합니다.
+     * 제공된 요청과 파일로 새 에피소드를 생성합니다.
      *
-     * @param episodeRequest 에피소드 생성 요청
-     * @return 에피소드 ID와 에피소드 URL
+     * @param episodeRequest 에피소드를 생성하기 위한 요청 정보
+     * @param file 에피소드와 연결할 파일
+     * @return EpisodeResponse 객체로, 새로 생성된 에피소드 ID와 해당 presigned URL이 포함됩니다.
+     * @throws EpisodeAlreadyExistsException 에피소드 제목이 이미 존재할 경우
+     * @throws NovelNotFoundException 소설이 존재하지 않을 경우
      */
     @Transactional
-    public EpisodeResponse createEpisode(EpisodeRequest episodeRequest) {
+    public EpisodeResponse createEpisode(EpisodeRequest episodeRequest, MultipartFile file) {
         checkForDuplicateEpisodeTitle(episodeRequest);
 
         Novel novel = findNovelById(episodeRequest.novelId());
         Episode episode = createAndSaveEpisode(episodeRequest, novel);
         FileMetadata fileMetadata = createAndSaveFileMetadata(episode, novel.getId());
 
-        String presignedUrl = fileService.getPresignUrl(
-                generateRelativePath(novel.getId(), episodeDirectory, episode.getId(), scriptDirectory, fileMetadata.getId()),
-                EPISODE_CONTENT_TYPE
+        String filePath = generateRelativePath(
+                novel.getId(),
+                episodeDirectory,
+                episode.getId(),
+                scriptDirectory,
+                fileMetadata.getId()
         );
 
-        return new EpisodeResponse(episode.getId(), presignedUrl);
-    }
+        String presignedURL = fileService.uploadFileToBucket(filePath, file, TXT.getMimeType(), privateBucket);
 
+        return new EpisodeResponse(episode.getId(), presignedURL);
+    }
 
     /**
      * 에피소드 ID를 기반으로 상세 정보를 조회합니다.
@@ -179,7 +192,7 @@ public class EpisodeService {
                 .build());
 
         String filePath = getFilePath(
-                bucketName,
+                privateBucket,
                 region,
                 novelId,
                 episodeDirectory,
