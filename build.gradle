@@ -87,7 +87,7 @@ tasks.named('test') {
 }
 
 task copyMainConfig(type: Copy) {
-	from './config'
+	from './config/web'
 	include '*.yml'
 	into './src/main/resources'
 }
