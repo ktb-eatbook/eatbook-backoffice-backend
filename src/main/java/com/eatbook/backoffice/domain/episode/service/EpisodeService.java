@@ -99,18 +99,18 @@ public class EpisodeService {
         Episode episode = episodeRepository.findById(episodeId)
                 .orElseThrow(() -> new EpisodeNotFoundException(EPISODE_NOT_FOUND));
 
-        return EpisodeDetailResponse.of(
-                episode.getId(),
-                episode.getTitle(),
-                episode.getChapterNumber(),
-                episode.getReleasedDate(),
-                episode.getScheduledReleaseDate(),
-                episode.getReleaseStatus(),
-                episode.getNovel().getId(),
-                episode.getViewCount(),
-                episode.getCreatedAt(),
-                episode.getUpdatedAt()
-        );
+        return EpisodeDetailResponse.builder()
+                .id(episode.getId())
+                .title(episode.getTitle())
+                .chapter(episode.getChapterNumber())
+                .scheduledDate(episode.getScheduledReleaseDate())
+                .releaseDate(episode.getReleasedDate())
+                .releaseStatus(episode.getReleaseStatus())
+                .novelId(episode.getNovel().getId())
+                .viewCount(episode.getViewCount())
+                .createdAt(episode.getCreatedAt())
+                .updatedAt(episode.getUpdatedAt())
+                .build();
     }
 
     /**
