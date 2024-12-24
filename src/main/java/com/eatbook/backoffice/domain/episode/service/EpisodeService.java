@@ -18,6 +18,7 @@ import com.eatbook.backoffice.entity.constant.ReleaseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +46,8 @@ public class EpisodeService {
     private final NovelRepository novelRepository;
     private final FileMetadataRepository fileMetadataRepository;
     private final FileService fileService;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final KafkaProducerService kafkaProducerService;
 
     private static final ContentType EPISODE_CONTENT_TYPE = TXT;
 
@@ -68,6 +71,8 @@ public class EpisodeService {
 
     @Value("${cloud.aws.region.static}")
     private String region;
+
+    private static final String TOPIC = "speech-generation-requests";
 
 
     /**
@@ -97,7 +102,104 @@ public class EpisodeService {
 
         String presignedURL = fileService.uploadFileToBucket(filePath, file, TXT.getMimeType(), privateBucket);
 
+        //Kafka를 통해 AI 작업 요청 전송
+        String taskId = generateTaskId(episode.getId());
+        String kafkaMessage = createKafkaMessage(taskId, presignedURL);
+        kafkaProducerService.sendMessage(TOPIC, taskId, kafkaMessage);
+
+        //Redis에 초기 작업 상태 저장
+        redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
+
         return new EpisodeResponse(episode.getId(), presignedURL);
+    }
+
+
+    private String generateTaskId(String episodeId) {
+        return "task-" + episodeId;
+    }
+
+    private String createKafkaMessage(String taskId, String presignedURL) {
+        return String.format(
+                "{\"taskId\":\"%s\", \"fileUrl\":\"%s\"}",
+                taskId,
+                presignedURL
+        );
+    }
+
+    /**
+     * 지정된 에피소드 ID를 기반으로 에피소드 정보를 수정합니다.
+     * 새로운 파일이 업로드될 경우 기존 파일을 대체합니다.
+     *
+     * @param episodeId 수정할 에피소드의 ID.
+     * @param episodeRequest 수정 요청 데이터.
+     * @param file 새로운 파일 (선택 사항).
+     * @return 수정된 에피소드의 상세 정보.
+     * @throws EpisodeNotFoundException 에피소드가 존재하지 않을 경우 예외 발생.
+     */
+    @Transactional
+    public EpisodeDetailResponse updateEpisode(String episodeId, EpisodeRequest episodeRequest, MultipartFile file) {
+        // 에피소드 존재 여부 확인
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException(EPISODE_NOT_FOUND));
+
+        // 제목 중복 체크
+        episodeRepository.findByTitleAndNovelId(episodeRequest.title(), episode.getNovel().getId())
+                .ifPresent(existingEpisode -> {
+                    if (!existingEpisode.getId().equals(episodeId)) {
+                        throw new EpisodeAlreadyExistsException(EPISODE_TITLE_DUPLICATED);
+                    }
+                });
+
+        // 필드 업데이트
+        episode.setTitle(episodeRequest.title());
+        episode.setScheduledReleaseDate(episodeRequest.scheduledReleaseDate());
+        episode.setReleasedDate(episodeRequest.releaseStatus() == ReleaseStatus.PUBLIC
+                ? LocalDateTime.now()
+                : episodeRequest.releasedDate());
+        episode.setReleaseStatus(episodeRequest.releaseStatus());
+
+        // 파일 업로드 처리
+        if (file != null && !file.isEmpty()) {
+            // 기존 파일 메타데이터 가져오기
+            FileMetadata existingFileMetadata = fileMetadataRepository.findByEpisodeId(episodeId);
+
+            // 기존 파일 삭제
+//            fileService.deleteFile(existingFileMetadata.getPath());
+
+            // 새로운 파일 업로드
+            String filePath = generateRelativePath(
+                    episode.getNovel().getId(),
+                    episodeDirectory,
+                    episode.getId(),
+                    scriptDirectory,
+                    existingFileMetadata.getId()
+            );
+
+            String presignedURL = fileService.uploadFileToBucket(filePath, file, TXT.getMimeType(), privateBucket);
+
+            // 파일 메타데이터 갱신
+            existingFileMetadata.setPath(filePath);
+            fileMetadataRepository.save(existingFileMetadata);
+
+            log.info("새로운 파일이 업로드되었습니다: {}", filePath);
+        }
+
+        // 변경 사항 저장
+        episode = episodeRepository.save(episode);
+
+        // 수정된 에피소드 상세 정보 반환
+        return EpisodeDetailResponse.builder()
+                .id(episode.getId())
+                .title(episode.getTitle())
+                .chapter(episode.getChapterNumber())
+                .scheduledDate(episode.getScheduledReleaseDate())
+                .releaseDate(episode.getReleasedDate())
+                .releaseStatus(episode.getReleaseStatus())
+                .novelId(episode.getNovel().getId())
+                .viewCount(episode.getViewCount())
+                .createdAt(episode.getCreatedAt())
+                .updatedAt(episode.getUpdatedAt())
+                .build();
     }
 
     /**
@@ -203,5 +305,17 @@ public class EpisodeService {
 
         fileMetadata.setPath(filePath);
         return fileMetadataRepository.save(fileMetadata);
+    }
+
+    /**
+     * 지정된 에피소드 ID에 해당하는 에피소드 삭제합니다.
+     *
+     * @param episodeId 삭제할 에피소드의 ID.
+     */
+    @Transactional
+    public void deleteEpisode(String episodeId) {
+        Episode episode = episodeRepository.findById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException(EPISODE_NOT_FOUND));
+        episodeRepository.delete(episode);
     }
 }

@@ -12,8 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.GET_NOVEL_LIST;
-import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.NOVEL_CREATED;
+import static com.eatbook.backoffice.domain.novel.response.NovelSuccessCode.*;
 
 /**
  * 소설 관련 작업을 관리하는 컨트롤러.
@@ -140,5 +139,41 @@ public class NovelController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(NovelSuccessCode.SEARCH_NOVELS, novelListResponse));
+    }
+
+    /**
+     * 지정된 소설 ID에 해당하는 소설을 삭제합니다.
+     *
+     * @param novelId 삭제할 소설의 ID.
+     * @return 삭제 성공 메시지를 포함하는 {@link ResponseEntity}
+     */
+    @DeleteMapping("/novels/{novelId}")
+    public ResponseEntity<ApiResponse> deleteNovel(@PathVariable("novelId") String novelId) {
+        novelService.deleteNovel(novelId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NOVEL_DELETED));
+    }
+
+
+    /**
+     * 지정된 소설 ID에 해당하는 소설을 수정합니다.
+     *
+     * @param novelId 수정할 소설의 ID.
+     * @param novelUpdateRequest 수정 요청 데이터.
+     * @return 수정 성공 메시지를 포함하는 {@link ResponseEntity}.
+     */
+    @PutMapping("/novels/{novelId}")
+    public ResponseEntity<ApiResponse> updateNovel(
+            @PathVariable("novelId") String novelId,
+            @Validated @RequestBody NovelRequest novelUpdateRequest) {
+
+        log.info("Update Novel Request: novelId={}, request={}", novelId, novelUpdateRequest);
+
+        NovelResponse updatedNovel = novelService.updateNovel(novelId, novelUpdateRequest);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(NOVEL_UPDATED, updatedNovel));
     }
 }

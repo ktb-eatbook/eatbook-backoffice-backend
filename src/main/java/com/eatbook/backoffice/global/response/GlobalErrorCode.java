@@ -26,6 +26,7 @@ public enum GlobalErrorCode implements StatusCode {
     JWT_UNKNOWN_ERROR("JWT_UNKNOWN_ERROR", "알 수 없는 JWT 토큰 오류가 발생했습니다."),
     SECURITY_ROLE_NOT_FOUND("SECURITY_ROLE_NOT_FOUND", "해당하는 권한을 찾을 수 없습니다."),
     INVALID_ROLE("INVALID_ROLE", "유효하지 않은 권한입니다."),
+    NO_SUCH_TASK("NO_SUCH_TASK", "해당하는 작업을 찾을 수 없습니다."),
     ;
 
     private final String code;

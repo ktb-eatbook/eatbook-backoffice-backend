@@ -7,12 +7,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.util.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE novel SET deleted_at = NOW() WHERE id = ?")
 @Table(name = "novel")
 public class Novel extends SoftDeletableEntity {
 
@@ -66,6 +70,34 @@ public class Novel extends SoftDeletableEntity {
 
     public void setCoverImageUrl(String coverImageUrl) {
         this.coverImageUrl = coverImageUrl;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public void setPublicationYear(int publicationYear) {
+        this.publicationYear = publicationYear;
+    }
+
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public void setIsCompleted(boolean isCompleted) {
+        this.isCompleted = isCompleted;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void clearAuthors() {
+        this.novelAuthors.clear();
+    }
+
+    public void clearCategories() {
+        this.novelCategories.clear();
     }
 
     public void addAuthor(Author author) {

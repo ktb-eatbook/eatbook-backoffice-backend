@@ -45,5 +45,6 @@ public class NovelCategory {
     public NovelCategory(Novel novel, Category category) {
         this.novel = novel;
         this.category = category;
+        this.createdAt = LocalDateTime.now();
     }
 }

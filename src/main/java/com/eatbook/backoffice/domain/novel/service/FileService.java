@@ -51,12 +51,12 @@ public class FileService {
      * @return              preSignedURL URL을 문자열로 반환
      * @throws PresignedUrlGenerationException  preSignedURL 생성 중에 예외가 발생할 경우
      */
-    public String getPresignUrl(String objectKey, ContentType contentType) {
-        PutObjectRequest putObjectRequest = createPutObjectRequest(objectKey, contentType.getMimeType(), privateBucket);
+    public String getPresignUrl(String objectKey, ContentType contentType, String bucketName) {
+        PutObjectRequest putObjectRequest = createPutObjectRequest(objectKey, contentType.getMimeType(), bucketName);
 
         PresignedPutObjectRequest presignedPutObjectRequest;
         try {
-            validateBucketName(privateBucket);
+            validateBucketName(bucketName);
             presignedPutObjectRequest = createPresignedPutObjectRequest(putObjectRequest);
         } catch (Exception e) {
             throw new PresignedUrlGenerationException(S3_PRE_SIGNED_URL_GENERATION_FAILED, e.getMessage());

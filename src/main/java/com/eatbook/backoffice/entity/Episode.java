@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.Objects;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Where(clause = "deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE episode SET deleted_at = NOW() WHERE id = ?")
 @Table(name = "episode")
 public class Episode extends SoftDeletableEntity {
 
@@ -67,8 +71,20 @@ public class Episode extends SoftDeletableEntity {
         this.novel = novel;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public void setReleasedDate(LocalDateTime releasedDate) {
         this.releasedDate = releasedDate;
+    }
+
+    public void setReleaseStatus(ReleaseStatus releaseStatus) {
+        this.releaseStatus = releaseStatus;
+    }
+
+    public void setScheduledReleaseDate(LocalDateTime scheduledReleaseDate) {
+        this.scheduledReleaseDate = scheduledReleaseDate;
     }
 
     @Override
@@ -83,6 +99,5 @@ public class Episode extends SoftDeletableEntity {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }
 

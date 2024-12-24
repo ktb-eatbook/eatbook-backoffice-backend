@@ -14,6 +14,8 @@ public enum NovelSuccessCode implements StatusCode {
     GET_NOVEL_COMMENT_LIST("GET_NOVEL_COMMENT_LIST", "소설 댓글 목록을 성공적으로 조회했습니다."),
     GET_NOVEL_EPISODE_LIST("GET_NOVEL_EPISODE_LIST", "소설 에피소드 목록을 성공적으로 조회했습니다."),
     SEARCH_NOVELS("SEARCH_NOVELS", "소설을 성공적으로 검색했습니다."),
+    NOVEL_UPDATED("NOVEL_UPDATED", "소설이 성공적으로 수정되었습니다."),
+    NOVEL_DELETED("NOVEL_DELETED", "소설이 성공적으로 삭제되었습니다."),
     ;
 
     private final String code;

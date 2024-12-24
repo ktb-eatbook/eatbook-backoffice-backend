@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import static com.eatbook.backoffice.domain.episode.response.EpisodeSuccessCode.EPISODE_CREATED;
+import static com.eatbook.backoffice.domain.episode.response.EpisodeSuccessCode.EPISODE_DELETED;
 
 /**
  * 에피소드를 관리하기 위한 컨트롤러 클래스입니다.
@@ -68,5 +69,36 @@ public class EpisodeController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(EpisodeSuccessCode.EPISODE_FETCHED, response));
+    }
+
+    /**
+     * 지정된 에피소드 ID에 해당하는 에피소드를 삭제합니다.
+     *
+     * @param episodeId 삭제할 에피소드의 ID.
+     * @return 삭제 성공 메시지를 포함하는 {@link ResponseEntity}
+     */
+    @DeleteMapping("/{episodeId}")
+    public ResponseEntity<ApiResponse> deleteEpisode(@PathVariable("episodeId") String episodeId) {
+        episodeService.deleteEpisode(episodeId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(EPISODE_DELETED));
+    }
+
+    /**
+     * 에피소드를 수정합니다.
+     *
+     * @param episodeId 수정할 에피소드의 ID
+     * @param episodeRequest 수정할 에피소드 정보
+     * @return 수정된 에피소드의 ID
+     */
+    @PutMapping("/{episodeId}")
+    public ResponseEntity<ApiResponse> updateEpisode(@PathVariable String episodeId,
+                                                     @Validated @RequestPart("episodeRequest") EpisodeRequest episodeRequest,
+                                                     @RequestPart(value = "file", required = false) MultipartFile file) {
+        episodeService.updateEpisode(episodeId, episodeRequest, file);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(EpisodeSuccessCode.EPISODE_UPDATED));
     }
 }

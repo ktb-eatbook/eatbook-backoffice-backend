@@ -45,6 +45,7 @@ public class NovelAuthor {
     public NovelAuthor(Novel novel, Author author) {
         this.novel = novel;
         this.author = author;
+        this.createdAt =  LocalDateTime.now();
     }
 
 }

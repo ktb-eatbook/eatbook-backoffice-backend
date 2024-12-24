@@ -13,6 +13,7 @@ public enum MemberSuccessCode implements StatusCode {
     GET_MEMBER_DETAIL("GET_MEMBER_DETAIL", "회원 상세 정보를 성공적으로 조회했습니다."),
     UPDATE_MEMBER("UPDATE_MEMBER", "회원 정보를 성공적으로 수정했습니다."),
     UPDATE_MEMBER_ROLE("UPDATE_MEMBER_ROLE", "회원 권한을 성공적으로 수정했습니다."),
+    DELETE_MEMBER("DELETE_MEMBER", "회원을 성공적으로 삭제했습니다.")
     ;
 
     private final String code;

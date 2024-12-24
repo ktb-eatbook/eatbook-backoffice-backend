@@ -13,8 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.eatbook.backoffice.domain.member.response.MemberSuccessCode.GET_MEMBER_LIST;
-import static com.eatbook.backoffice.domain.member.response.MemberSuccessCode.UPDATE_MEMBER_ROLE;
+import static com.eatbook.backoffice.domain.member.response.MemberSuccessCode.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -52,5 +51,19 @@ public class MemberController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.of(UPDATE_MEMBER_ROLE));
+    }
+
+    /**
+     * 지정된 회원 ID에 해당하는 회원을 삭제합니다.
+     *
+     * @param memberId 삭제할 회원의 ID.
+     * @return 삭제 성공 메시지를 포함하는 {@link ResponseEntity}
+     */
+    @DeleteMapping("/members/{memberId}")
+    public ResponseEntity<ApiResponse> deleteMember(@PathVariable("memberId") String memberId) {
+        memberService.deleteMember(memberId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.of(DELETE_MEMBER));
     }
 }

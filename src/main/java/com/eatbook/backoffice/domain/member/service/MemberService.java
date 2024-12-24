@@ -2,7 +2,9 @@ package com.eatbook.backoffice.domain.member.service;
 
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
 import com.eatbook.backoffice.domain.member.exception.InvalidRoleException;
+import com.eatbook.backoffice.domain.member.exception.MemberAuthenticationException;
 import com.eatbook.backoffice.domain.member.repository.MemberRepository;
+import com.eatbook.backoffice.entity.Member;
 import com.eatbook.backoffice.entity.constant.Role;
 import com.eatbook.backoffice.entity.constant.SortDirection;
 import com.eatbook.backoffice.entity.constant.SortField;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.INVALID_ROLE;
+import static com.eatbook.backoffice.global.response.GlobalErrorCode.NOT_EXIST_USER;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.PAGE_OUT_OF_BOUNDS;
 
 /**
@@ -69,6 +72,18 @@ public class MemberService {
     }
 
     /**
+     * 지정된 회원 ID에 해당하는 회원을 삭제합니다.
+     *
+     * @param memberId 삭제할 회원의 ID.
+     */
+    @Transactional
+    public void deleteMember(String memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberAuthenticationException(NOT_EXIST_USER));
+        memberRepository.delete(member);
+    }
+
+    /**
      * 주어진 역할 문자열을 검증하고, 해당하는 {@link Role} 열거형 값을 반환합니다.
      * 역할 문자열이 유효한 열거형 값이 아니면 {@link InvalidRoleException}이 발생합니다.
      *
@@ -93,7 +108,7 @@ public class MemberService {
      */
     private void validatePageRequest(Pageable pageable, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
-        if (pageable.getPageNumber() >= totalPages) {
+        if (totalElements != 0 && pageable.getPageNumber() >= totalPages) {
             throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
         }
     }
