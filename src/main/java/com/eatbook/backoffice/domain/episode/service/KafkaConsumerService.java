@@ -51,12 +51,11 @@ public class KafkaConsumerService {
             redisTemplate.opsForValue().set("task:" + taskId + ":status", status);
 
             // 실패 시 Dead Letter Queue로 전송
-            if (!success) {
-                sendToDlq(record.value());
+            if (success) {
+                acknowledgment.acknowledge(); // Offset Commit
+            } else {
+                sendToDlq(record.value()); // 실패 시 DLQ 전송
             }
-
-            // 메시지 커밋
-            acknowledgment.acknowledge();
         } catch (Exception e) {
             log.error("Failed to process message: {}", record.value(), e);
             // DLQ로 전송
