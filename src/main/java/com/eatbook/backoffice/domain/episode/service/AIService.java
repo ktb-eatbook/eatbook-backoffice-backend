@@ -11,7 +11,7 @@ import java.util.Map;
 @Slf4j
 public class AIService {
 
-    private static final String AI_SERVER_URL = "http://192.168.2.83:8000/tts/";
+    private static final String AI_SERVER_URL = "http://192.168.2.83:8000/tts";
 
     public boolean processTask(String taskId) {
         try {
