@@ -28,7 +28,8 @@ public class FileUploadController {
 
     @PostMapping("/create/{taskId}")
     public ResponseEntity<String> createTask(@RequestBody String data, @PathVariable String taskId) {
-        kafkaProducerService.sendMessage(TOPIC, taskId);
+        String message = "";
+        kafkaProducerService.sendMessage(TOPIC, taskId, message);
         // 초기 상태 설정
         redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
         return ResponseEntity.ok(taskId);

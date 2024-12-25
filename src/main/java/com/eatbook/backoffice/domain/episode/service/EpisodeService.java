@@ -15,6 +15,8 @@ import com.eatbook.backoffice.entity.FileMetadata;
 import com.eatbook.backoffice.entity.Novel;
 import com.eatbook.backoffice.entity.constant.ContentType;
 import com.eatbook.backoffice.entity.constant.ReleaseStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_NOT_FOUND;
 import static com.eatbook.backoffice.domain.episode.response.EpisodeErrorCode.EPISODE_TITLE_DUPLICATED;
@@ -73,7 +77,7 @@ public class EpisodeService {
     private String region;
 
     private static final String TOPIC = "speech-generation-requests";
-
+    private final ObjectMapper objectMapper; // JSON 변환을 위한 ObjectMapper 추가
 
     /**
      * 제공된 요청과 파일로 새 에피소드를 생성합니다.
@@ -104,7 +108,23 @@ public class EpisodeService {
 
         //Kafka를 통해 AI 작업 요청 전송
         String taskId = generateTaskId(episode.getId(), novel.getId(), fileMetadata.getId());
-        kafkaProducerService.sendMessage(TOPIC, taskId);
+
+        // 메시지 생성 (JSON 형식)
+        Map<String, String> messageMap = new HashMap<>();
+        messageMap.put("taskId", taskId);
+        // 필요에 따라 추가 데이터 포함
+        // messageMap.put("data", "additional data");
+
+        String message;
+        try {
+            message = objectMapper.writeValueAsString(messageMap);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to convert message to JSON", e);
+            kafkaProducerService.sendToDlq("{\"taskId\":\"" + taskId + "\", \"error\":\"JSON conversion failed\"}");
+            throw new RuntimeException("JSON conversion failed", e);
+        }
+
+        kafkaProducerService.sendMessage(TOPIC, taskId, message);
 
         //Redis에 초기 작업 상태 저장
         redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
