@@ -109,7 +109,7 @@ public class NovelService {
         log.info("소설 수정됨: ID={}, 제목={}", novel.getId(), novel.getTitle());
 
         String presignedUrl = fileService.getPresignUrl(
-                generateRelativePath(NOVEL_DIRECTORY, novel.getId(), COVER_IMAGE_DIRECTORY, novel.getId()),
+                generateRelativePath(NOVEL_DIRECTORY, novel.getId(), NOVEL_DIRECTORY, novel.getId(), COVER_IMAGE_DIRECTORY, novel.getId()),
                 COVER_IMAGE_CONTENT_TYPE, publicBucket);
 
         return new NovelResponse(novel.getId(), presignedUrl);
