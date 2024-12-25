@@ -17,7 +17,7 @@ public class AIService {
         try {
             // taskId 파싱
             String[] taskComponents = taskId.split("-");
-            if (taskComponents.length != 13) { // 각 UUID는 5개의 '-'로 구분되므로 3개의 UUID는 13개 요소
+            if (taskComponents.length != 15) { // 각 UUID는 5개의 '-'로 구분되므로 3개의 UUID는 13개 요소
                 log.error("Invalid taskId format: {}", taskId);
                 return false;
             }
@@ -25,10 +25,9 @@ public class AIService {
             // 각 UUID 추출
             String novelId = String.join("-", taskComponents[0], taskComponents[1], taskComponents[2], taskComponents[3], taskComponents[4]);
             String episodeId = String.join("-", taskComponents[5], taskComponents[6], taskComponents[7], taskComponents[8], taskComponents[9]);
-            String fileMetadataId = String.join("-", taskComponents[10], taskComponents[11], taskComponents[12]);
+            String fileMetadataId = String.join("-", taskComponents[10], taskComponents[11], taskComponents[12], taskComponents[13], taskComponents[14]);
 
             log.info("Parsed taskId - Novel ID: {}, Episode ID: {}, File Metadata ID: {}", novelId, episodeId, fileMetadataId);
-
 
             // TTS 요청 생성
             TTSRequest ttsRequest = new TTSRequest(novelId, episodeId, fileMetadataId);
