@@ -245,7 +245,7 @@ public class NovelService {
                 .publicationYear(novelRequest.publicationYear())
                 .build());
 
-        String coverImageUrl = getFilePath(publicBucket, region, COVER_IMAGE_DIRECTORY, newNovel.getId());
+        String coverImageUrl = getFilePath(publicBucket, region, NOVEL_DIRECTORY, newNovel.getId(), COVER_IMAGE_DIRECTORY, newNovel.getId());
         newNovel.setCoverImageUrl(coverImageUrl);
         newNovel = novelRepository.save(newNovel);
 
