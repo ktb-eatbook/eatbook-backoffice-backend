@@ -40,6 +40,14 @@ public class KafkaConsumerService {
 
             log.info("Processing taskId: {}, data: {}", taskId, data);
 
+            String status = redisTemplate.opsForValue().get("task:" + taskId + ":status");
+            if ("START".equals(status)) {
+                log.warn("Task already in progress, skipping duplicate: {}", taskId);
+                acknowledgment.acknowledge(); // 중복 방지
+                return;
+            }
+
+
             // 작업 상태 "START"로 설정
             redisTemplate.opsForValue().set("task:" + taskId + ":status", "START");
 
@@ -47,8 +55,8 @@ public class KafkaConsumerService {
             boolean success = processWithConcurrencyControl(taskId, data);
 
             // 작업 성공/실패 상태 업데이트
-            String status = success ? "COMPLETED" : "FAILED";
-            redisTemplate.opsForValue().set("task:" + taskId + ":status", status);
+            String finalStatus = success ? "COMPLETED" : "FAILED";
+            redisTemplate.opsForValue().set("task:" + taskId + ":status", finalStatus);
 
             // 실패 시 Dead Letter Queue로 전송
             if (success) {
