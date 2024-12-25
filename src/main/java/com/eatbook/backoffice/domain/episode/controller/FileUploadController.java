@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Set;
 
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.NO_SUCH_TASK;
 import static com.eatbook.backoffice.global.response.GlobalSuccessCode.*;
@@ -27,19 +28,29 @@ public class FileUploadController {
 
     @PostMapping("/create/{taskId}")
     public ResponseEntity<String> createTask(@RequestBody String data, @PathVariable String taskId) {
-        kafkaProducerService.sendMessage(TOPIC, taskId, data);
+        kafkaProducerService.sendMessage(TOPIC, taskId);
         // 초기 상태 설정
         redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
         return ResponseEntity.ok(taskId);
     }
 
-    @GetMapping("/{taskId}/status")
-    public ResponseEntity<ApiResponse> getTaskStatus(@PathVariable String taskId) {
-        // Redis에서 작업 상태 조회
-        String status = redisTemplate.opsForValue().get("task:task-" + taskId + ":status");
-        GlobalSuccessCode statusCode;
+    @GetMapping("/{episodeId}/status")
+    public ResponseEntity<ApiResponse> getTaskStatusByEpisode(@PathVariable String episodeId) {
+        // Redis에서 episodeId에 해당하는 키 검색
+        String pattern = "*-" + episodeId + "-*:status";
+        Set<String> matchingKeys = redisTemplate.keys(pattern);
 
-        // 상태 코드 매핑
+        if (matchingKeys == null || matchingKeys.isEmpty()) {
+            // 상태가 없을 경우 404 응답 반환
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.of(NO_SUCH_TASK));
+        }
+
+        // Redis에서 해당 키의 상태 조회
+        String taskKey = matchingKeys.iterator().next(); // episodeId당 taskId는 하나라고 가정
+        String status = redisTemplate.opsForValue().get(taskKey);
+
         if (status == null) {
             // 상태가 없을 경우 404 응답 반환
             return ResponseEntity
@@ -48,7 +59,7 @@ public class FileUploadController {
         }
 
         // 상태에 따른 GlobalSuccessCode 매핑
-        statusCode = switch (status) {
+        GlobalSuccessCode statusCode = switch (status) {
             case "COMPLETED" -> JOB_SUCCESS;
             case "START" -> JOB_START;
             case "PENDING" -> JOB_PENDING;
@@ -56,7 +67,7 @@ public class FileUploadController {
         };
 
         // API 응답 생성
-        ApiResponse response = ApiResponse.of(statusCode, Map.of("taskId", taskId, "status", status));
+        ApiResponse response = ApiResponse.of(statusCode, Map.of("taskKey", taskKey, "status", status));
 
         // 응답 반환
         return ResponseEntity

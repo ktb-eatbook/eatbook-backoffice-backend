@@ -23,8 +23,7 @@ public interface NovelRepository extends JpaRepository<Novel, String>, NovelCust
             "WHERE LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "   OR LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "   OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-            "GROUP BY n.id " +
-            "ORDER BY n.createdAt DESC")
+            "GROUP BY n.id, n.createdAt")
     Page<String> findNovelIdsByQuery(@Param("query") String query, Pageable pageable);
 
     @Query("SELECT n FROM Novel n " +

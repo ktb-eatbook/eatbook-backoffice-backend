@@ -103,9 +103,8 @@ public class EpisodeService {
         String presignedURL = fileService.uploadFileToBucket(filePath, file, TXT.getMimeType(), privateBucket);
 
         //Kafka를 통해 AI 작업 요청 전송
-        String taskId = generateTaskId(episode.getId());
-        String kafkaMessage = createKafkaMessage(taskId, presignedURL);
-        kafkaProducerService.sendMessage(TOPIC, taskId, kafkaMessage);
+        String taskId = generateTaskId(episode.getId(), novel.getId(), fileMetadata.getId());
+        kafkaProducerService.sendMessage(TOPIC, taskId);
 
         //Redis에 초기 작업 상태 저장
         redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
@@ -114,8 +113,8 @@ public class EpisodeService {
     }
 
 
-    private String generateTaskId(String episodeId) {
-        return "task-" + episodeId;
+    private String generateTaskId(String episodeId, String novelId, String fileMetadataId) {
+        return String.format("%s-%s-%s", novelId, episodeId, fileMetadataId);
     }
 
     private String createKafkaMessage(String taskId, String presignedURL) {

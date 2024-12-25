@@ -14,9 +14,9 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void sendMessage(String topic, String key, String message) {
-        log.info("Producing message to topic: {}, key: {}, message: {}", topic, key, message);
-        kafkaTemplate.send(topic, key, message);
+    public void sendMessage(String topic, String key) {
+        log.info("Producing message to topic: {}, key: {}, message: {}", topic, key);
+        kafkaTemplate.send(topic, key);
     }
 
     public void sendToDlq(String message) {
