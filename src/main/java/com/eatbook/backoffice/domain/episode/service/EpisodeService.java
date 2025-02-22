@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,8 +49,8 @@ public class EpisodeService {
     private final NovelRepository novelRepository;
     private final FileMetadataRepository fileMetadataRepository;
     private final FileService fileService;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final KafkaProducerService kafkaProducerService;
+//    private final RedisTemplate<String, String> redisTemplate;
+//    private final KafkaProducerService kafkaProducerService;
 
     private static final ContentType EPISODE_CONTENT_TYPE = TXT;
 
@@ -120,14 +119,14 @@ public class EpisodeService {
             message = objectMapper.writeValueAsString(messageMap);
         } catch (JsonProcessingException e) {
             log.error("Failed to convert message to JSON", e);
-            kafkaProducerService.sendToDlq("{\"taskId\":\"" + taskId + "\", \"error\":\"JSON conversion failed\"}");
+//            kafkaProducerService.sendToDlq("{\"taskId\":\"" + taskId + "\", \"error\":\"JSON conversion failed\"}");
             throw new RuntimeException("JSON conversion failed", e);
         }
 
-        kafkaProducerService.sendMessage(TOPIC, taskId, message);
-
-        //Redis에 초기 작업 상태 저장
-        redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
+//        kafkaProducerService.sendMessage(TOPIC, taskId, message);
+//
+//        //Redis에 초기 작업 상태 저장
+//        redisTemplate.opsForValue().set("task:" + taskId + ":status", "PENDING");
 
         return new EpisodeResponse(episode.getId(), presignedURL);
     }

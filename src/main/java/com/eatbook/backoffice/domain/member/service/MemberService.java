@@ -3,7 +3,10 @@ package com.eatbook.backoffice.domain.member.service;
 import com.eatbook.backoffice.domain.member.dto.MemberListResponse;
 import com.eatbook.backoffice.domain.member.exception.InvalidRoleException;
 import com.eatbook.backoffice.domain.member.exception.MemberAuthenticationException;
+import com.eatbook.backoffice.domain.member.exception.MemberNotFoundException;
 import com.eatbook.backoffice.domain.member.repository.MemberRepository;
+import com.eatbook.backoffice.domain.novel.repository.AuthorRepository;
+import com.eatbook.backoffice.entity.Author;
 import com.eatbook.backoffice.entity.Member;
 import com.eatbook.backoffice.entity.constant.Role;
 import com.eatbook.backoffice.entity.constant.SortDirection;
@@ -17,7 +20,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.INVALID_ROLE;
+import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.MEMBER_NOT_FOUND;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.NOT_EXIST_USER;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.PAGE_OUT_OF_BOUNDS;
 
@@ -31,6 +37,7 @@ import static com.eatbook.backoffice.global.response.GlobalErrorCode.PAGE_OUT_OF
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final AuthorRepository authorRepository;
 
     /**
      * 멤버 목록을 페이징 처리하여 조회합니다.
@@ -66,9 +73,32 @@ public class MemberService {
      */
     @Transactional
     public void updateMemberRole(String memberId, String role) {
+        // 유효한 역할인지 검증하여 Role enum으로 변환
         Role newRole = validateRole(role);
 
+        // 멤버 역할 업데이트
         memberRepository.updateMemberRole(memberId, newRole);
+
+        // 만약 새 역할이 AUTHOR라면, 해당 멤버를 Author 테이블에도 등록
+        if (newRole == Role.AUTHOR) {
+            log.info("memberID to author ={}", memberId);
+            // 회원 정보를 조회 (예: 이름이나 필요한 정보를 가져오기 위함)
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new MemberNotFoundException(MEMBER_NOT_FOUND));
+
+            // 이미 해당 회원이 저자로 등록되어 있는지 확인 (중복 등록 방지)
+            Optional<Author> existingAuthor = authorRepository.findByName(member.getNickname());
+//            log.info(existingAuthor.get().getName() + " is already exist");
+            if (existingAuthor.isEmpty()) {
+                log.info("next step!");
+                // 회원 정보를 기반으로 Author 엔티티 생성 후 저장
+                Author newAuthor = Author.builder()
+                        .name(member.getNickname())
+                        .id(memberId)
+                        .build();
+                authorRepository.save(newAuthor);
+            }
+        }
     }
 
     /**
@@ -93,8 +123,9 @@ public class MemberService {
      */
     private Role validateRole(String role) {
         try {
-            return Role.valueOf(role.toUpperCase());
+            return Role.valueOf(role.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
+            log.info("here ={}", role);
             throw new InvalidRoleException(INVALID_ROLE);
         }
     }

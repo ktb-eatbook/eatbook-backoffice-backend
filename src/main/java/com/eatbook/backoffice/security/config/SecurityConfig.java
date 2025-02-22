@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.eatbook.backoffice.entity.constant.Role.ADMIN;
+import static com.eatbook.backoffice.entity.constant.Role.AUTHOR;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 
@@ -81,7 +82,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger*/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/master/**").hasAuthority(ADMIN.name())
-                        .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN.name())
+                        .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN.name(), AUTHOR.name())
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )

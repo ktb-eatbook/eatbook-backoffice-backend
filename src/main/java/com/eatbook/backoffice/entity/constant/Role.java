@@ -4,4 +4,5 @@ public enum Role {
     ADMIN,
     MEMBER,
     PENDING_ADMIN,
+    AUTHOR,
 }

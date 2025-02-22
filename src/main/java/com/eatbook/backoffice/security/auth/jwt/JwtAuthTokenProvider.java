@@ -104,4 +104,8 @@ public class JwtAuthTokenProvider implements AuthTokenProvider<JwtAuthToken> {
             return e.getClaims();
         }
     }
+
+    public JwtAuthToken convertRefreshToken(String token) {
+        return new JwtAuthToken(token, key);
+    }
 }

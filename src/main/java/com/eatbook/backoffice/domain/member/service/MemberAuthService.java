@@ -4,6 +4,7 @@ import com.eatbook.backoffice.domain.member.dto.LoginRequest;
 import com.eatbook.backoffice.domain.member.dto.LoginResponse;
 import com.eatbook.backoffice.domain.member.dto.SignUpRequest;
 import com.eatbook.backoffice.domain.member.exception.MemberAuthenticationException;
+import com.eatbook.backoffice.domain.member.exception.MemberNotFoundException;
 import com.eatbook.backoffice.domain.member.repository.MemberRepository;
 import com.eatbook.backoffice.domain.novel.service.FileService;
 import com.eatbook.backoffice.entity.Member;
@@ -12,6 +13,8 @@ import com.eatbook.backoffice.entity.constant.Gender;
 import com.eatbook.backoffice.entity.constant.Role;
 import com.eatbook.backoffice.security.auth.jwt.JwtAuthToken;
 import com.eatbook.backoffice.security.auth.jwt.JwtAuthTokenProvider;
+import com.eatbook.backoffice.security.error.exception.JwtTokenException;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -31,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.MEMBER_ALREADY_EXISTS;
+import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.MEMBER_NOT_FOUND;
 import static com.eatbook.backoffice.entity.constant.ContentType.JPEG;
 import static com.eatbook.backoffice.global.response.GlobalErrorCode.*;
 
@@ -166,5 +170,39 @@ public class MemberAuthService {
     protected void updateLastLogin(Member member) {
         member.setLastLogin(LocalDateTime.now());
         memberRepository.save(member);
+    }
+
+    /**
+     * JWT 토큰에서 role 정보 추출
+     */
+    public String getUserRoleFromToken(String token) {
+        JwtAuthToken authToken = tokenProvider.convertAuthToken(token);
+
+        // 토큰 검증
+        if (!authToken.validate()) {
+            throw new JwtTokenException(JWT_MALFORMED);
+        }
+
+        // Claims에서 role 정보 가져오기
+        Claims claims = authToken.getData();
+        return claims.get(JwtAuthToken.AUTHORITIES_KEY, String.class);
+    }
+
+    public String getUserRoleFromRefreshToken(String refreshToken) {
+        // refresh token을 JwtAuthToken 객체로 변환
+        JwtAuthToken authToken = tokenProvider.convertRefreshToken(refreshToken);
+        if (!authToken.validate()) {
+            throw new JwtTokenException(JWT_MALFORMED);
+        }
+        // 토큰에서 사용자 ID 추출 ("id" 클레임)
+        Claims claims = authToken.getData();
+        String userId = claims.get("id", String.class);
+
+        // memberRepository를 통해 실제 사용자 정보 조회
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new MemberNotFoundException(MEMBER_NOT_FOUND));
+
+        // 사용자 엔티티에 저장된 role을 반환 (Role은 enum이라면 toString 또는 name() 사용)
+        return member.getRole().toString();
     }
 }

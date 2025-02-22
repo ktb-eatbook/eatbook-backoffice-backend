@@ -6,6 +6,7 @@ import com.eatbook.backoffice.domain.novel.exception.NovelNotFoundException;
 import com.eatbook.backoffice.domain.novel.repository.*;
 import com.eatbook.backoffice.entity.*;
 import com.eatbook.backoffice.entity.constant.ContentType;
+import com.eatbook.backoffice.global.exception.exceptions.BusinessException;
 import com.eatbook.backoffice.global.exception.exceptions.PageOutOfBoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +15,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.eatbook.backoffice.domain.member.response.MemberErrorCode.INVALID_ROLE;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_ALREADY_EXISTS;
 import static com.eatbook.backoffice.domain.novel.response.NovelErrorCode.NOVEL_NOT_FOUND;
 import static com.eatbook.backoffice.entity.constant.ContentType.JPEG;
@@ -127,9 +131,56 @@ public class NovelService {
      */
     @Transactional(readOnly = true)
     public NovelListResponse getNovelList(int page, int size) {
+        // 현재 인증정보 가져오기
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ADMIN"));
+        boolean isAuthor = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("AUTHOR"));
+
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<String> novelIds = novelRepository.findNovelIds(pageable);
-        return getNovelListResponse(page, novelIds);
+        Page<String> novelIdsPage;
+
+        if (isAdmin) {
+            // 관리자이면 전체 소설 조회
+            novelIdsPage = novelRepository.findNovelIds(pageable);
+        } else if (isAuthor) {
+            novelIdsPage = novelRepository.findNovelIdsByAuthor(username, pageable);
+        } else {
+            throw new BusinessException(INVALID_ROLE);
+        }
+
+        return getNovelListResponse(page, novelIdsPage);
+    }
+
+    @Transactional(readOnly = true)
+    public NovelListResponse getNovelListV0(int page, int size) {
+        Pageable pageable = PageRequest.of(page -1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Novel> novelPage = novelRepository.findAll(pageable);
+
+        if (page > novelPage.getTotalPages() + 1) {
+            throw new PageOutOfBoundException(PAGE_OUT_OF_BOUNDS);
+        }
+
+        List<NovelInfo> novelInfoList = novelPage.getContent().stream()
+                .map(novel -> NovelInfo.of(
+                        novel.getId(),
+                        novel.getTitle(),
+                        getAuthorNames(novel),
+                        getCategoryNames(novel),
+                        novel.getCoverImageUrl()
+                ))
+                .collect(Collectors.toList());
+
+        return NovelListResponse.of(
+                (int) novelPage.getTotalElements(),
+                novelPage.getTotalPages(),
+                novelPage.getNumber()+1,
+                novelPage.getSize(),
+                novelInfoList
+        );
     }
 
     /**
