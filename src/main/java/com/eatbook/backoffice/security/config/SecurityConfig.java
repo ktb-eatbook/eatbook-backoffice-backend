@@ -81,6 +81,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/swagger*/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/master/**").hasAuthority(ADMIN.name())
                         .requestMatchers("/api/admin/**").hasAnyAuthority(ADMIN.name(), AUTHOR.name())
                         .requestMatchers("/api/**").authenticated()
