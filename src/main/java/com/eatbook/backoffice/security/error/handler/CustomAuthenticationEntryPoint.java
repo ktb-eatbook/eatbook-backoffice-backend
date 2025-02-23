@@ -30,12 +30,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          AuthenticationException authException) throws IOException, ServletException {
 
         StatusCode errorCode = GlobalErrorCode.JWT_EXPIRED;
-
         if (authException instanceof JwtTokenException) {
             errorCode = ((JwtTokenException) authException).getErrorCode();
         }
 
-        log.error("Authentication 예외 발생: {}", authException.getMessage());
+        log.error("🚨 Authentication 예외 발생: {} | 요청 URL: {} | Authorization 헤더: {}",
+                authException.getMessage(), request.getRequestURI(), request.getHeader("Authorization"));
 
         ApiResponse apiResponse = ApiResponse.of(errorCode);
 
